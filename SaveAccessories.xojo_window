@@ -1,5 +1,5 @@
 #tag DesktopWindow
-Begin DesktopContainer Container1
+Begin DesktopContainer SaveAccessories
    AllowAutoDeactivate=   True
    AllowFocus      =   False
    AllowFocusRing  =   False
@@ -24,67 +24,11 @@ Begin DesktopContainer Container1
    Top             =   0
    Transparent     =   True
    Visible         =   True
-   Width           =   300
-   Begin DesktopRectangle Rectangle1
-      AllowAutoDeactivate=   True
-      BorderColor     =   &c7E000000
-      BorderThickness =   1.0
-      CornerSize      =   16.0
-      Enabled         =   True
-      FillColor       =   &c93110100
-      Height          =   60
-      Index           =   -2147483648
-      Left            =   0
-      LockBottom      =   False
-      LockedInPosition=   False
-      LockLeft        =   True
-      LockRight       =   False
-      LockTop         =   True
-      Scope           =   0
-      TabIndex        =   1
-      TabPanelIndex   =   0
-      Tooltip         =   ""
-      Top             =   0
-      Transparent     =   False
-      Visible         =   True
-      Width           =   300
-      Begin DesktopButton Button1
-         AllowAutoDeactivate=   True
-         Bold            =   False
-         Cancel          =   False
-         Caption         =   "Options"
-         Default         =   False
-         Enabled         =   True
-         FontName        =   "System"
-         FontSize        =   0.0
-         FontUnit        =   0
-         Height          =   20
-         Index           =   -2147483648
-         InitialParent   =   "Rectangle1"
-         Italic          =   False
-         Left            =   200
-         LockBottom      =   False
-         LockedInPosition=   False
-         LockLeft        =   True
-         LockRight       =   False
-         LockTop         =   True
-         MacButtonStyle  =   0
-         Scope           =   2
-         TabIndex        =   0
-         TabPanelIndex   =   0
-         TabStop         =   True
-         Tooltip         =   ""
-         Top             =   20
-         Transparent     =   False
-         Underline       =   False
-         Visible         =   True
-         Width           =   80
-      End
-   End
+   Width           =   402
    Begin DesktopCheckBox CheckBox1
       AllowAutoDeactivate=   True
       Bold            =   False
-      Caption         =   "Accessory View"
+      Caption         =   "Option 1"
       Enabled         =   True
       FontName        =   "System"
       FontSize        =   0.0
@@ -94,11 +38,11 @@ Begin DesktopContainer Container1
       Italic          =   False
       Left            =   20
       LockBottom      =   False
-      LockedInPosition=   False
+      LockedInPosition=   True
       LockLeft        =   True
       LockRight       =   False
       LockTop         =   True
-      Scope           =   0
+      Scope           =   2
       TabIndex        =   0
       TabPanelIndex   =   0
       TabStop         =   True
@@ -109,12 +53,69 @@ Begin DesktopContainer Container1
       Value           =   False
       Visible         =   True
       VisualState     =   0
-      Width           =   168
+      Width           =   92
+   End
+   Begin DesktopCheckBox CheckBox2
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Caption         =   "Option 2"
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   20
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   124
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      Scope           =   2
+      TabIndex        =   1
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Tooltip         =   ""
+      Top             =   20
+      Transparent     =   False
+      Underline       =   False
+      Value           =   False
+      Visible         =   True
+      VisualState     =   0
+      Width           =   108
    End
 End
 #tag EndDesktopWindow
 
 #tag WindowCode
+	#tag Method, Flags = &h0
+		Sub Reset()
+		  CheckBox1.Value = False
+		  CheckBox2.Value = False
+		End Sub
+	#tag EndMethod
+
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  return CheckBox1.Value
+			End Get
+		#tag EndGetter
+		Option1Value As Boolean
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  return CheckBox2.Value
+			End Get
+		#tag EndGetter
+		Option2Value As Boolean
+	#tag EndComputedProperty
+
+
 #tag EndWindowCode
 
 #tag ViewBehavior
@@ -331,6 +332,22 @@ End
 		Visible=true
 		Group="Windows Behavior"
 		InitialValue="False"
+		Type="Boolean"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="Option1Value"
+		Visible=false
+		Group="Behavior"
+		InitialValue=""
+		Type="Boolean"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="Option2Value"
+		Visible=false
+		Group="Behavior"
+		InitialValue=""
 		Type="Boolean"
 		EditorType=""
 	#tag EndViewProperty
