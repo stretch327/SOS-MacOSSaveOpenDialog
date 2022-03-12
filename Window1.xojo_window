@@ -171,7 +171,7 @@ Begin DesktopWindow Window1
       HasHorizontalScrollbar=   False
       HasVerticalScrollbar=   True
       HeadingIndex    =   -1
-      Height          =   328
+      Height          =   296
       Index           =   -2147483648
       InitialValue    =   "Selected Items"
       Italic          =   False
@@ -193,25 +193,87 @@ Begin DesktopWindow Window1
       Underline       =   False
       Visible         =   True
       Width           =   560
+      _ScrollOffset   =   0
       _ScrollWidth    =   -1
+   End
+   Begin SaveAccessories SaveAccessories1
+      AllowAutoDeactivate=   True
+      AllowFocus      =   False
+      AllowFocusRing  =   False
+      AllowTabs       =   True
+      Backdrop        =   0
+      BackgroundColor =   &cFFFFFF
+      Composited      =   False
+      Enabled         =   True
+      HasBackgroundColor=   False
+      Height          =   60
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Left            =   0
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      Scope           =   0
+      TabIndex        =   5
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Tooltip         =   ""
+      Top             =   415
+      Transparent     =   True
+      Visible         =   True
+      Width           =   400
+   End
+   Begin DesktopLabel Label1
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   20
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   20
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      Multiline       =   False
+      Scope           =   0
+      Selectable      =   False
+      TabIndex        =   6
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   "Option Values"
+      TextAlignment   =   0
+      TextColor       =   &c000000
+      Tooltip         =   ""
+      Top             =   360
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      Width           =   560
    End
 End
 #tag EndDesktopWindow
 
 #tag WindowCode
 	#tag Method, Flags = &h21
-		Private Sub Config(dlg as NSOpenPanel)
+		Private Sub Config(dlg as NSOpenPanelGTO)
 		  dlg.Title = "Alphabetical"
 		  
 		  AddHandler dlg.ItemsSelected, AddressOf NSSavePanel_ItemsSelected
 		  
 		  dlg.CanCreateDirectories = False
 		  dlg.CanSelectHiddenExtension = False
-		  dlg.ExtensionHidden = True
+		  dlg.ExtensionHidden = False
 		  dlg.InitialFolder = SpecialFolder.Desktop
 		  dlg.PromptText = "Pick a picture"
 		  dlg.NameFieldLabel = "Filename:"
-		  dlg.SuggestedFileName = "Tortured"
+		  dlg.SuggestedFileName = "Untitled"
 		  dlg.ShowsHiddenFiles = True
 		  dlg.ShowsTagField = True
 		  dlg.TreatsPackagesAsFolders = True
@@ -225,12 +287,13 @@ End
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Sub NSSavePanel_ItemsSelected(obj As NSSavePanel, items() as FolderItem)
+		Private Sub NSSavePanel_ItemsSelected(obj as NSSavePanelGTO, items() as FolderItem)
 		  RemoveHandler obj.ItemsSelected, AddressOf NSSavePanel_ItemsSelected
 		  
 		  UpdateFileList(items)
 		  
-		  
+		  label1.Text = "Option 1: " + SaveAccessories1.Option1Value.ToString + _
+		  " Option 2: " + SaveAccessories1.Option2Value.ToString
 		End Sub
 	#tag EndMethod
 
@@ -239,7 +302,8 @@ End
 		  listbox1.RemoveAllRows
 		  
 		  For i As Integer = 0 To UBound(files)
-		    listbox1.AddRow files(i).NativePath
+		    Dim f As FolderItem = files(i)
+		    listbox1.AddRow f.NativePath
 		  Next i
 		End Sub
 	#tag EndMethod
@@ -250,27 +314,20 @@ End
 #tag Events Button1
 	#tag Event
 		Sub Pressed()
-		  Dim ctl As New Container1
-		  
-		  //put it on the view but off the bottom right so it isn't visible
-		  ctl.EmbedWithin(Self, Self.Width, Self.Height, ctl.Width, ctl.Height)
-		  
-		  Dim h As ptr = ctl.Handle
-		  
 		  // Custom save panel
-		  Dim dlg As New NSSavePanel
+		  dim dlg as New NSSavePanelGTO
 		  AddHandler dlg.ItemsSelected, AddressOf NSSavePanel_ItemsSelected
-		  
-		  dlg.AccessoryView = ctl.Handle
+		  SaveAccessories1.Reset
+		  dlg.AccessoryView = SaveAccessories1
 		  dlg.ActionButtonCaption = "Save"
 		  dlg.CanCreateDirectories = False
 		  dlg.CanSelectHiddenExtension = True
-		  dlg.ExtensionHidden = False
+		  dlg.ExtensionHidden = True
 		  dlg.Filter = Array(FileTypeGroup2.Text)
 		  dlg.InitialFolder = SpecialFolder.Desktop
 		  dlg.NameFieldLabel = "Filename:"
 		  dlg.PromptText = "Where do you want to save?"
-		  dlg.SuggestedFileName = "Tortured.txt"
+		  dlg.SuggestedFileName = "Untitled.txt"
 		  dlg.ShowsHiddenFiles = True
 		  dlg.ShowsTagField = True
 		  dlg.Title = "Alphabetical"
@@ -285,19 +342,14 @@ End
 #tag Events Button2
 	#tag Event
 		Sub Pressed()
-		  Dim ctl As New Container1
-		  
-		  //put it on the view but off the bottom right so it isn't visible
-		  ctl.EmbedWithin(Self, Self.Width, Self.Height, ctl.Width, ctl.Height)
-		  
-		  Dim h As ptr = ctl.Handle
 		  
 		  // Custom save panel
-		  Dim dlg As New NSOpenPanel
+		  Dim dlg As New NSOpenPanelGTO
 		  config(dlg)
 		  dlg.PromptText = "Select a picture"
 		  dlg.ActionButtonCaption = "Select"
-		  dlg.AccessoryView = ctl.Handle
+		  SaveAccessories1.Reset
+		  dlg.AccessoryView = SaveAccessories1
 		  dlg.CanChooseDirectories = False
 		  dlg.CanChooseFiles = True
 		  dlg.AllowMultipleSelection = False
@@ -311,19 +363,14 @@ End
 #tag Events Button3
 	#tag Event
 		Sub Pressed()
-		  Dim ctl As New Container1
-		  
-		  //put it on the view but off the bottom right so it isn't visible
-		  ctl.EmbedWithin(Self, Self.Width, Self.Height, ctl.Width, ctl.Height)
-		  
-		  Dim h As ptr = ctl.Handle
 		  
 		  // Custom save panel
-		  Dim dlg As New NSOpenPanel
+		  Dim dlg As New NSOpenPanelGTO
 		  config(dlg)
 		  dlg.PromptText = "Select some pictures"
 		  dlg.ActionButtonCaption = "Select"
-		  dlg.AccessoryView = ctl.Handle
+		  SaveAccessories1.Reset
+		  dlg.AccessoryView = SaveAccessories1
 		  dlg.CanChooseDirectories = False
 		  dlg.CanChooseFiles = True
 		  dlg.AllowMultipleSelection = True
@@ -337,23 +384,19 @@ End
 #tag Events Button4
 	#tag Event
 		Sub Pressed()
-		  Dim ctl As New Container1
-		  
-		  //put it on the view but off the bottom right so it isn't visible
-		  ctl.EmbedWithin(Self, Self.Width, Self.Height, ctl.Width, ctl.Height)
-		  
-		  Dim h As ptr = ctl.Handle
 		  
 		  // Custom save panel
-		  Dim dlg As New NSOpenPanel
+		  Dim dlg As New NSOpenPanelGTO
 		  config(dlg)
 		  dlg.PromptText = "Select some files and/or folders"
 		  dlg.ActionButtonCaption = "Select"
-		  dlg.AccessoryView = ctl.Handle
+		  SaveAccessories1.Reset
+		  dlg.AccessoryView = SaveAccessories1
 		  dlg.CanChooseDirectories = True
 		  dlg.CanChooseFiles = True
 		  dlg.AllowMultipleSelection = True
 		  dlg.TreatsPackagesAsFolders = False
+		  dlg.ResolvesAliases = True
 		  dlg.Filter = Array(FileTypeGroup2.Any, FileTypeGroup2.ApplicationBundle)
 		  dlg.Show
 		  
