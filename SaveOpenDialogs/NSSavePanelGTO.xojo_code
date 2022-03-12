@@ -1,18 +1,29 @@
 #tag Class
-Protected Class NSSavePanel
+Protected Class NSSavePanelGTO
 	#tag Method, Flags = &h0
-		Sub AccessoryView(assigns value as integer)
-		  Declare Sub setAccessoryView Lib "Foundation" Selector "setAccessoryView:" (obj As ptr, value As integer)
+		Sub AccessoryView(assigns value as object)
+		  Dim handle As Integer
+		  #If XojoVersion >= 2021.03
+		    Dim h As OSHandle
+		    If value IsA DesktopContainer Then
+		      h = DesktopContainer(value).Handle
+		    ElseIf value IsA ContainerControl Then
+		      h = ContainerControl(value).Handle
+		    End If
+		    handle = h
+		  #Else
+		    If value IsA ContainerControl Then
+		      handle = ContainerControl(value).Handle
+		    End If
+		  #EndIf
 		  
-		  setAccessoryView(mPtr, value)
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub AccessoryView(assigns value as ptr)
-		  Declare Sub setAccessoryView Lib "Foundation" Selector "setAccessoryView:" (obj As ptr, value As Ptr)
+		  If handle = 0 Then
+		    Raise New UnsupportedOperationException("AccessoryView only accepts DesktopContainers or ContainerControls")
+		  End If
 		  
-		  setAccessoryView(mPtr, value)
+		  Declare Sub setAccessoryView Lib "Foundation" Selector "setAccessoryView:" (obj As ptr, value As Integer)
+		  
+		  setAccessoryView(mPtr, handle)
 		End Sub
 	#tag EndMethod
 
@@ -82,7 +93,7 @@ Protected Class NSSavePanel
 		  
 		  Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
 		  
-		  If Self IsA NSOpenPanel And NSOpenPanel(Self).AllowMultipleSelection Then
+		  If Self IsA NSOpenPanelGTO And NSOpenPanelGTO(Self).AllowMultipleSelection Then
 		    // @property(readonly, copy) NSArray<NSURL *> *URLs;
 		    Declare Function getURLs Lib "Foundation" Selector "URLs" (obj As ptr) As Ptr
 		    
@@ -95,7 +106,7 @@ Protected Class NSSavePanel
 		      Dim c As Integer = getCount(urlArray)
 		      
 		      For i As Integer = 0 To c-1
-		        items.Add New FolderItem(getAbsoluteString(objectAtIndex_(urlArray, i)), FolderItem.PathModes.URL)
+		        items.Add New FolderItem(getAbsoluteString(objectAtIndex_(urlArray, i)), FolderItem.PathModes.URL, False)
 		      Next i
 		      
 		      RaiseEvent ItemsSelected(items)

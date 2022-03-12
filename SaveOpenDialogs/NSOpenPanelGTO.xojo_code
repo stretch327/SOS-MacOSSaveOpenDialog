@@ -1,6 +1,6 @@
 #tag Class
-Protected Class NSOpenPanel
-Inherits NSSavePanel
+Protected Class NSOpenPanelGTO
+Inherits NSSavePanelGTO
 	#tag Method, Flags = &h0
 		Sub Constructor()
 		  Self.Constructor("NSOpenPanel")
