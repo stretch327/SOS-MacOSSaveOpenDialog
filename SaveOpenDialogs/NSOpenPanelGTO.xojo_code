@@ -3,12 +3,14 @@ Protected Class NSOpenPanelGTO
 Inherits NSSavePanelGTO
 	#tag Method, Flags = &h0
 		Sub Constructor()
-		  Self.Constructor("NSOpenPanel")
-		  
-		  // + (NSOpenPanel *)openPanel;
-		  Declare Function openPanel Lib "Foundation" Selector "openPanel" ( cls As ptr ) As Ptr
-		  
-		  mPtr = openPanel(ClassObj)
+		  #If TargetMacOS
+		    Self.Constructor("NSOpenPanel")
+		    
+		    // + (NSOpenPanel *)openPanel;
+		    Declare Function openPanel Lib "Foundation" Selector "openPanel" ( cls As ptr ) As Ptr
+		    
+		    mPtr = openPanel(ClassObj)
+		  #endif
 		End Sub
 	#tag EndMethod
 
@@ -16,15 +18,19 @@ Inherits NSSavePanelGTO
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
-			  // @property(getter=isAccessoryViewDisclosed) BOOL accessoryViewDisclosed;
-			  Declare Function isAccessoryViewDisclosed Lib "Foundation" Selector "isAccessoryViewDisclosed" (obj As ptr) As Boolean
-			  return isAccessoryViewDisclosed(mPtr)
+			  #If TargetMacOS
+			    // @property(getter=isAccessoryViewDisclosed) BOOL accessoryViewDisclosed;
+			    Declare Function isAccessoryViewDisclosed Lib "Foundation" Selector "isAccessoryViewDisclosed" (obj As ptr) As Boolean
+			    Return isAccessoryViewDisclosed(mPtr)
+			  #endif
 			End Get
 		#tag EndGetter
 		#tag Setter
 			Set
-			  Declare Sub setAccessoryViewDisclosed Lib "Foundation" Selector "setAccessoryViewDisclosed:" (obj As ptr, value As Boolean)
-			  setAccessoryViewDisclosed(mPtr, value)
+			  #If TargetMacOS
+			    Declare Sub setAccessoryViewDisclosed Lib "Foundation" Selector "setAccessoryViewDisclosed:" (obj As ptr, value As Boolean)
+			    setAccessoryViewDisclosed(mPtr, value)
+			  #endif
 			End Set
 		#tag EndSetter
 		AccessoryViewVisible As Boolean
@@ -33,15 +39,19 @@ Inherits NSSavePanelGTO
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
-			  // @property BOOL allowsMultipleSelection;
-			  Declare Function getAllowsMultipleSelection Lib "Foundation" Selector "allowsMultipleSelection" (obj As ptr) As Boolean
-			  Return getAllowsMultipleSelection(mPtr)
+			  #If TargetMacOS
+			    // @property BOOL allowsMultipleSelection;
+			    Declare Function getAllowsMultipleSelection Lib "Foundation" Selector "allowsMultipleSelection" (obj As ptr) As Boolean
+			    Return getAllowsMultipleSelection(mPtr)
+			  #endif
 			End Get
 		#tag EndGetter
 		#tag Setter
 			Set
-			  Declare Sub setAllowsMultipleSelection Lib "Foundation" Selector "setAllowsMultipleSelection:" (obj As ptr, value As Boolean)
-			  setAllowsMultipleSelection(mPtr, value)
+			  #If TargetMacOS
+			    Declare Sub setAllowsMultipleSelection Lib "Foundation" Selector "setAllowsMultipleSelection:" (obj As ptr, value As Boolean)
+			    setAllowsMultipleSelection(mPtr, value)
+			  #endif
 			End Set
 		#tag EndSetter
 		AllowMultipleSelection As Boolean
@@ -50,15 +60,19 @@ Inherits NSSavePanelGTO
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
-			  // @property BOOL canChooseDirectories;
-			  Declare Function getCanChooseDirectories Lib "Foundation" Selector "canChooseDirectories" (obj As ptr) As Boolean
-			  Return getCanChooseDirectories(mPtr)
+			  #If TargetMacOS
+			    // @property BOOL canChooseDirectories;
+			    Declare Function getCanChooseDirectories Lib "Foundation" Selector "canChooseDirectories" (obj As ptr) As Boolean
+			    Return getCanChooseDirectories(mPtr)
+			  #endif
 			End Get
 		#tag EndGetter
 		#tag Setter
 			Set
-			  Declare Sub setCanChooseDirectories Lib "Foundation" Selector "setCanChooseDirectories:" (obj As ptr, value As Boolean)
-			  setCanChooseDirectories(mPtr, value)
+			  #If TargetMacOS
+			    Declare Sub setCanChooseDirectories Lib "Foundation" Selector "setCanChooseDirectories:" (obj As ptr, value As Boolean)
+			    setCanChooseDirectories(mPtr, value)
+			  #endif
 			End Set
 		#tag EndSetter
 		CanChooseDirectories As Boolean
@@ -67,15 +81,19 @@ Inherits NSSavePanelGTO
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
-			  // @property BOOL canChooseFiles;
-			  Declare Function getCanChooseFiles Lib "Foundation" Selector "canChooseFiles" (obj As ptr) As Boolean
-			  return getCanChooseFiles(mPtr)
+			  #If TargetMacOS
+			    // @property BOOL canChooseFiles;
+			    Declare Function getCanChooseFiles Lib "Foundation" Selector "canChooseFiles" (obj As ptr) As Boolean
+			    Return getCanChooseFiles(mPtr)
+			  #endif
 			End Get
 		#tag EndGetter
 		#tag Setter
 			Set
-			  Declare Sub setCanChooseFiles Lib "Foundation" Selector "setCanChooseFiles:" (obj As ptr, value As Boolean)
-			  setCanChooseFiles(mPtr, value)
+			  #If TargetMacOS
+			    Declare Sub setCanChooseFiles Lib "Foundation" Selector "setCanChooseFiles:" (obj As ptr, value As Boolean)
+			    setCanChooseFiles(mPtr, value)
+			  #endif
 			End Set
 		#tag EndSetter
 		CanChooseFiles As Boolean
@@ -84,16 +102,20 @@ Inherits NSSavePanelGTO
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
-			  // @property BOOL canDownloadUbiquitousContents;
-			  Declare Function getCanDownloadUbiquitousContents Lib "Foundation" Selector "canDownloadUbiquitousContents" (obj As ptr) As Boolean
-			  
-			  return getCanDownloadUbiquitousContents(mPtr)
+			  #If TargetMacOS
+			    // @property BOOL canDownloadUbiquitousContents;
+			    Declare Function getCanDownloadUbiquitousContents Lib "Foundation" Selector "canDownloadUbiquitousContents" (obj As ptr) As Boolean
+			    
+			    Return getCanDownloadUbiquitousContents(mPtr)
+			  #endif
 			End Get
 		#tag EndGetter
 		#tag Setter
 			Set
-			  Declare Sub setCanDownloadUbiquitousContents Lib "Foundation" Selector "setCanDownloadUbiquitousContents:" (obj As ptr, value As Boolean)
-			  setCanDownloadUbiquitousContents(mPtr, value)
+			  #If TargetMacOS
+			    Declare Sub setCanDownloadUbiquitousContents Lib "Foundation" Selector "setCanDownloadUbiquitousContents:" (obj As ptr, value As Boolean)
+			    setCanDownloadUbiquitousContents(mPtr, value)
+			  #endif
 			End Set
 		#tag EndSetter
 		CanDownloadUbiquitousContents As Boolean
@@ -102,16 +124,20 @@ Inherits NSSavePanelGTO
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
-			  // @property BOOL canResolveUbiquitousConflicts;
-			  Declare Function getCanResolveUbiquitousConflicts Lib "Foundation" Selector "canResolveUbiquitousConflicts" (obj As ptr) As Boolean
-			  
-			  return getCanResolveUbiquitousConflicts(mPtr)
+			  #If TargetMacOS
+			    // @property BOOL canResolveUbiquitousConflicts;
+			    Declare Function getCanResolveUbiquitousConflicts Lib "Foundation" Selector "canResolveUbiquitousConflicts" (obj As ptr) As Boolean
+			    
+			    Return getCanResolveUbiquitousConflicts(mPtr)
+			  #endif
 			End Get
 		#tag EndGetter
 		#tag Setter
 			Set
-			  Declare Sub setCanResolveUbiquitousConflicts Lib "Foundation" Selector "setCanResolveUbiquitousConflicts:" (obj As ptr, value As Boolean)
-			  setCanResolveUbiquitousConflicts(mPtr, value)
+			  #If TargetMacOS
+			    Declare Sub setCanResolveUbiquitousConflicts Lib "Foundation" Selector "setCanResolveUbiquitousConflicts:" (obj As ptr, value As Boolean)
+			    setCanResolveUbiquitousConflicts(mPtr, value)
+			  #endif
 			End Set
 		#tag EndSetter
 		CanResolveUbiquitousConflicts As Boolean
@@ -120,15 +146,19 @@ Inherits NSSavePanelGTO
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
-			  // @property BOOL resolvesAliases;
-			  Declare Function getResolvesAliases Lib "Foundation" Selector "resolvesAliases" (obj As ptr) As Boolean
-			  return getResolvesAliases(mPtr)
+			  #If TargetMacOS
+			    // @property BOOL resolvesAliases;
+			    Declare Function getResolvesAliases Lib "Foundation" Selector "resolvesAliases" (obj As ptr) As Boolean
+			    Return getResolvesAliases(mPtr)
+			  #endif
 			End Get
 		#tag EndGetter
 		#tag Setter
 			Set
-			  Declare Sub setResolvesAliases Lib "Foundation" Selector "setResolvesAliases:" (obj As ptr, value As Boolean)
-			  setResolvesAliases(mPtr, value)
+			  #If TargetMacOS
+			    Declare Sub setResolvesAliases Lib "Foundation" Selector "setResolvesAliases:" (obj As ptr, value As Boolean)
+			    setResolvesAliases(mPtr, value)
+			  #endif
 			End Set
 		#tag EndSetter
 		ResolvesAliases As Boolean
