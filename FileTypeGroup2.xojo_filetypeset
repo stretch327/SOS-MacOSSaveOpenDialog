@@ -2,16 +2,16 @@
 	#tag FileType
 		CodeName=Text
 		Extension=.txt
-		Flags=&h2
+		Flags=&h5
 		MacCreator=
 		MacType=TEXT
-		Name=text/plain
-		UTI=public.text
+		Name=Plain Text
+		UTI=public.txt
 		UTIConformsTo=public.data, public.content
 		Description=
-		MimeType=
+		MimeType=text/plain
 		Imported=True
-		HandlerRank=&h9
+		HandlerRank=&h11
 		UTIPhysicalType=public.data
 	#tag EndFileType
 
@@ -40,6 +40,38 @@
 		Name=special/any
 		UTI=public.data
 		UTIConformsTo=, public.data
+		Description=
+		MimeType=
+		Imported=True
+		HandlerRank=&h9
+		UTIPhysicalType=public.data
+	#tag EndFileType
+
+	#tag FileType
+		CodeName=Rtf
+		Extension=.rtf
+		Flags=&h2
+		MacCreator=
+		MacType=TEXT
+		Name=Rich Text
+		UTI=public.rtf
+		UTIConformsTo=public.text,public.data
+		Description=
+		MimeType=
+		Imported=True
+		HandlerRank=&h9
+		UTIPhysicalType=public.data
+	#tag EndFileType
+
+	#tag FileType
+		CodeName=Pdf
+		Extension=.pdf
+		Flags=&h2
+		MacCreator=
+		MacType=PDF 
+		Name=Portable Document File
+		UTI=com.adobe.pdf
+		UTIConformsTo=public.data, public.composite-content
 		Description=
 		MimeType=
 		Imported=True
