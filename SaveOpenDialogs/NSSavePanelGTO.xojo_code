@@ -74,16 +74,34 @@ Protected Class NSSavePanelGTO
 		    Declare Function arrayWithCapacity_ Lib "Foundation" Selector "arrayWithCapacity:" ( cls As ptr , numItems As Integer ) As Ptr
 		    // - (void)addObject:(ObjectType)anObject;
 		    Declare Sub addObject_ Lib "Foundation" Selector "addObject:" ( obj As ptr , anObject As Ptr )
+		    Declare Sub addStringObject_ Lib "Foundation" Selector "addObject:" ( obj As ptr , anObject As CFStringRef )
+		    
 		    // + (UTType *)exportedTypeWithIdentifier:(NSString *)identifier;
 		    Declare Function exportedTypeWithIdentifier_ Lib "Foundation" Selector "exportedTypeWithIdentifier:" ( cls As ptr , identifier As CFStringRef ) As Ptr
+		    // + (UTType *)importedTypeWithIdentifier:(NSString *)identifier;
+		    Declare Function importedTypeWithIdentifier_ Lib "Foundation" Selector "importedTypeWithIdentifier:" (cls As ptr, identifier As CFStringRef) As Ptr
+		    // @property(copy) NSArray<NSString *> *allowedFileTypes;
+		    Declare Sub setAllowedFileTypes Lib "Foundation" Selector "setAllowedFileTypes:" (obj As ptr, value As Ptr)
 		    
 		    Dim arr As ptr = arrayWithCapacity_(NSClassFromString("NSMutableArray"), UBound(value)+1)
 		    Dim UTType As ptr = NSClassFromString("UTType")
 		    For i As Integer = 0 To UBound(value)
-		      addObject_(arr, exportedTypeWithIdentifier_(UTType, value(i).UTI))
+		      If MacOSVersion.MajorVersion <= 12 Then
+		        addStringObject_(arr, value(i).UTI)
+		      Else
+		        Dim t As ptr = exportedTypeWithIdentifier_(UTType, value(i).UTI)
+		        If t = Nil Then
+		          t = importedTypeWithIdentifier_(UTType, value(i).UTI)
+		        End If
+		        addObject_(arr, t)
+		      End If
 		    Next i
 		    
-		    setAllowedContentTypes(mPtr, arr)
+		    If MacOSVersion.MajorVersion <= 12 Then
+		      setAllowedFileTypes(mPtr, arr)
+		    Else
+		      setAllowedContentTypes(mPtr, arr)
+		    End If
 		  #endif
 		End Sub
 	#tag EndMethod
