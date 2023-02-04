@@ -12,6 +12,7 @@ Folder=SaveOpenDialogs;SaveOpenDialogs;&h0000000061666FFF;&h0000000000000000;fal
 Class=NSSavePanelGTO;SaveOpenDialogs/NSSavePanelGTO.xojo_code;&h00000000593547FF;&h0000000061666FFF;false
 Class=NSOpenPanelGTO;SaveOpenDialogs/NSOpenPanelGTO.xojo_code;&h000000007B5E3FFF;&h0000000061666FFF;false
 FileTypeSet=FileTypeGroup2;FileTypeGroup2.xojo_filetypeset;&h0000000024B8BFFF;&h0000000000000000;false
+Class=MacOSVersion;SaveOpenDialogs/MacOSVersion.xojo_code;&h00000000787DE7FF;&h0000000061666FFF;false
 DefaultWindow=Window1
 AppMenuBar=MainMenuBar
 MajorVersion=1
