@@ -289,6 +289,12 @@ End
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
+		Private Sub NSSavePanel_DirectoryChanged(obj as NSSavePanelGTO, f as FolderItem)
+		  break
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Sub NSSavePanel_ItemsSelected(obj as NSSavePanelGTO, items() as FolderItem)
 		  RemoveHandler obj.ItemsSelected, AddressOf NSSavePanel_ItemsSelected
 		  
@@ -312,6 +318,10 @@ End
 
 
 	#tag Property, Flags = &h21
+		Private mOpenDialog As NSOpenPanelGTO
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private mSaveDialog As NSSavePanelGTO
 	#tag EndProperty
 
@@ -326,6 +336,7 @@ End
 		  // Custom save panel
 		  mSaveDialog = New NSSavePanelGTO
 		  AddHandler mSaveDialog.ItemsSelected, AddressOf NSSavePanel_ItemsSelected
+		  AddHandler mSaveDialog.DirectoryChanged, AddressOf NSSavePanel_DirectoryChanged
 		  
 		  SaveAccessories1.SetFileTypes(types)
 		  SaveAccessories1.Reset
@@ -355,18 +366,18 @@ End
 		Sub Pressed()
 		  
 		  // Custom save panel
-		  Dim dlg As New NSOpenPanelGTO
-		  config(dlg)
-		  dlg.PromptText = "Select a picture"
-		  dlg.ActionButtonCaption = "Select"
+		  Dim mOpenDialog As New NSOpenPanelGTO
+		  config(mOpenDialog)
+		  mOpenDialog.PromptText = "Select a picture"
+		  mOpenDialog.ActionButtonCaption = "Select"
 		  SaveAccessories1.Reset
 		  
-		  dlg.AccessoryView = SaveAccessories1
-		  dlg.CanChooseDirectories = False
-		  dlg.CanChooseFiles = True
-		  dlg.AllowMultipleSelection = False
+		  mOpenDialog.AccessoryView = SaveAccessories1
+		  mOpenDialog.CanChooseDirectories = False
+		  mOpenDialog.CanChooseFiles = True
+		  mOpenDialog.AllowMultipleSelection = False
 		  
-		  dlg.Show
+		  mOpenDialog.Show
 		  
 		  
 		End Sub
