@@ -23,7 +23,7 @@
 		MacType=
 		Name=Application
 		UTI=com.apple.application-bundle
-		UTIConformsTo=com.apple.application, public.executable, com.apple.localizable-name-bundle, com.apple.bundle, public.directory, public.item,public.data
+		UTIConformsTo=com.apple.application, public.executable, com.apple.localizable-name-bundle, com.apple.bundle, public.directory, public.item, public.data
 		Description=
 		MimeType=
 		Imported=True
@@ -39,7 +39,7 @@
 		MacType=????
 		Name=special/any
 		UTI=public.data
-		UTIConformsTo=,public.data
+		UTIConformsTo=, public.data
 		Description=
 		MimeType=
 		Imported=True
