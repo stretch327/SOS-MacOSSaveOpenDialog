@@ -311,31 +311,40 @@ End
 	#tag EndMethod
 
 
+	#tag Property, Flags = &h21
+		Private mSaveDialog As NSSavePanelGTO
+	#tag EndProperty
+
+
 #tag EndWindowCode
 
 #tag Events Button1
 	#tag Event
 		Sub Pressed()
-		  // Custom save panel
-		  dim dlg as New NSSavePanelGTO
-		  AddHandler dlg.ItemsSelected, AddressOf NSSavePanel_ItemsSelected
-		  SaveAccessories1.Reset
-		  dlg.AccessoryView = SaveAccessories1
-		  dlg.ActionButtonCaption = "Save"
-		  dlg.CanCreateDirectories = False
-		  dlg.CanSelectHiddenExtension = True
-		  dlg.ExtensionHidden = True
-		  dlg.Filter = Array(FileTypeGroup2.Text)
-		  dlg.InitialFolder = SpecialFolder.Desktop
-		  dlg.NameFieldLabel = "Filename:"
-		  dlg.PromptText = "Where do you want to save?"
-		  dlg.SuggestedFileName = "Untitled.txt"
-		  dlg.ShowsHiddenFiles = True
-		  dlg.ShowsTagField = True
-		  dlg.Title = "Alphabetical"
-		  dlg.TreatsPackagesAsFolders = True
-		  dlg.ShowWithin(Self)
+		  Dim types() As FileType = Array(FileTypeGroup2.Text, FileTypeGroup2.Rtf, FileTypeGroup2.Pdf)
 		  
+		  // Custom save panel
+		  mSaveDialog = New NSSavePanelGTO
+		  AddHandler mSaveDialog.ItemsSelected, AddressOf NSSavePanel_ItemsSelected
+		  
+		  SaveAccessories1.SetFileTypes(types)
+		  SaveAccessories1.Reset
+		  mSaveDialog.AccessoryView = SaveAccessories1
+		  
+		  mSaveDialog.ActionButtonCaption = "Save"
+		  mSaveDialog.CanCreateDirectories = False
+		  mSaveDialog.CanSelectHiddenExtension = True
+		  mSaveDialog.ExtensionHidden = False
+		  mSaveDialog.Filter = types
+		  mSaveDialog.InitialFolder = SpecialFolder.Desktop
+		  mSaveDialog.NameFieldLabel = "Filename:"
+		  mSaveDialog.PromptText = "Where do you want to save?"
+		  mSaveDialog.SuggestedFileName = "Untitled.txt"
+		  mSaveDialog.ShowsHiddenFiles = True
+		  mSaveDialog.ShowsTagField = True
+		  mSaveDialog.Title = "Alphabetical"
+		  mSaveDialog.TreatsPackagesAsFolders = True
+		  mSaveDialog.ShowWithin(Self)
 		  
 		  
 		End Sub
@@ -351,6 +360,7 @@ End
 		  dlg.PromptText = "Select a picture"
 		  dlg.ActionButtonCaption = "Select"
 		  SaveAccessories1.Reset
+		  
 		  dlg.AccessoryView = SaveAccessories1
 		  dlg.CanChooseDirectories = False
 		  dlg.CanChooseFiles = True
@@ -403,6 +413,15 @@ End
 		  dlg.Show
 		  
 		  
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events SaveAccessories1
+	#tag Event
+		Sub FileTypeChanged(type as FileType)
+		  // set the filter on the dialog to the selected type
+		  // this will automagically change the extension of the file
+		  mSaveDialog.Filter = Array(type)
 		End Sub
 	#tag EndEvent
 #tag EndEvents
