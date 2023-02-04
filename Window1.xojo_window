@@ -206,7 +206,7 @@ Begin DesktopWindow Window1
       Composited      =   False
       Enabled         =   True
       HasBackgroundColor=   False
-      Height          =   60
+      Height          =   90
       Index           =   -2147483648
       InitialParent   =   ""
       Left            =   0
@@ -215,6 +215,8 @@ Begin DesktopWindow Window1
       LockLeft        =   True
       LockRight       =   False
       LockTop         =   True
+      Option1Value    =   False
+      Option2Value    =   False
       Scope           =   0
       TabIndex        =   5
       TabPanelIndex   =   0

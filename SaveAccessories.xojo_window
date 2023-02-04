@@ -9,7 +9,7 @@ Begin DesktopContainer SaveAccessories
    Composited      =   False
    Enabled         =   True
    HasBackgroundColor=   False
-   Height          =   60
+   Height          =   92
    Index           =   -2147483648
    InitialParent   =   ""
    Left            =   0
@@ -38,7 +38,7 @@ Begin DesktopContainer SaveAccessories
       Italic          =   False
       Left            =   20
       LockBottom      =   False
-      LockedInPosition=   True
+      LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   False
       LockTop         =   True
@@ -47,7 +47,7 @@ Begin DesktopContainer SaveAccessories
       TabPanelIndex   =   0
       TabStop         =   True
       Tooltip         =   ""
-      Top             =   20
+      Top             =   52
       Transparent     =   False
       Underline       =   False
       Value           =   False
@@ -77,13 +77,74 @@ Begin DesktopContainer SaveAccessories
       TabPanelIndex   =   0
       TabStop         =   True
       Tooltip         =   ""
-      Top             =   20
+      Top             =   52
       Transparent     =   False
       Underline       =   False
       Value           =   False
       Visible         =   True
       VisualState     =   0
       Width           =   108
+   End
+   Begin DesktopLabel Label1
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   20
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   20
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      Multiline       =   False
+      Scope           =   2
+      Selectable      =   False
+      TabIndex        =   2
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   "Format:"
+      TextAlignment   =   0
+      TextColor       =   &c000000
+      Tooltip         =   ""
+      Top             =   20
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      Width           =   59
+   End
+   Begin DesktopPopupMenu FileTypesPopup
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   20
+      Index           =   -2147483648
+      InitialValue    =   ""
+      Italic          =   False
+      Left            =   91
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      Scope           =   2
+      SelectedRowIndex=   0
+      TabIndex        =   3
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Tooltip         =   ""
+      Top             =   20
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      Width           =   291
    End
 End
 #tag EndDesktopWindow
@@ -93,8 +154,32 @@ End
 		Sub Reset()
 		  CheckBox1.Value = False
 		  CheckBox2.Value = False
+		  FileTypesPopup.SelectedRowIndex = 0
+		  
 		End Sub
 	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub SetFileTypes(types() as FileType)
+		  FileTypesPopup.RemoveAllRows
+		  For i As Integer = 0 To UBound(types)
+		    FileTypesPopup.AddRow types(i).Name
+		    FileTypesPopup.RowTagAt(FileTypesPopup.LastAddedRowIndex) = types(i)
+		  Next
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub SetFileTypes(paramarray types as FileType)
+		  SetFileTypes(types)
+		End Sub
+	#tag EndMethod
+
+
+	#tag Hook, Flags = &h0
+		Event FileTypeChanged(type as FileType)
+	#tag EndHook
 
 
 	#tag ComputedProperty, Flags = &h0
@@ -118,6 +203,13 @@ End
 
 #tag EndWindowCode
 
+#tag Events FileTypesPopup
+	#tag Event
+		Sub SelectionChanged(item As DesktopMenuItem)
+		  FileTypeChanged(item.tag)
+		End Sub
+	#tag EndEvent
+#tag EndEvents
 #tag ViewBehavior
 	#tag ViewProperty
 		Name="Name"
