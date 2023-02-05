@@ -366,7 +366,7 @@ End
 		  
 		  Dim ex As New RuntimeException("test")
 		  
-		  Return ex
+		  // Return ex
 		  
 		End Function
 	#tag EndMethod
