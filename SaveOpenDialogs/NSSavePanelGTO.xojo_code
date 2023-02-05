@@ -527,6 +527,25 @@ Protected Class NSSavePanelGTO
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
+			  // @property(copy) NSURL *directoryURL;
+			  Declare Function getDirectoryURL Lib "Foundation" Selector "directoryURL" (obj As ptr) As Ptr
+			  
+			  return NSURL2Folderitem(getDirectoryURL(mPtr))
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  Declare Sub setDirectoryURL Lib "Foundation" Selector "setDirectoryURL:" (obj As ptr, value As Ptr)
+			  
+			  setDirectoryURL(mPtr, Folderitem2NSURL(value))
+			End Set
+		#tag EndSetter
+		Directory As FolderItem
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
 			  #If TargetMacOS
 			    // @property(getter=isExtensionHidden) BOOL extensionHidden;
 			    Declare Function isExtensionHidden Lib "Foundation" Selector "isExtensionHidden" (obj As ptr) As Boolean
