@@ -416,6 +416,14 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h21
 		Private Sub zWillExpand_Callback(expanding as Boolean)
+		  If SuppressDuplicateEvents Then
+		    Dim currentMS As Integer = ticks / 6 // 10ths of a second
+		    If zLastWillExpand = CurrentMS Then
+		      Return
+		    End If
+		    zLastWillExpand = currentMS
+		  End If
+		  
 		  RaiseEvent WillExpand(expanding)
 		End Sub
 	#tag EndMethod
@@ -834,6 +842,10 @@ Protected Class NSSavePanelGTO
 
 	#tag Property, Flags = &h21
 		Private zLastValidateURLError As Pair
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private zLastWillExpand As Integer
 	#tag EndProperty
 
 
