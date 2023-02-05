@@ -43,11 +43,12 @@ Protected Class NSSavePanelGTO
 	#tag Method, Flags = &h0
 		Sub Constructor()
 		  #If TargetMacOS
-		    Self.Constructor("NSSavePanel")
-		    
+		    Declare Function NSClassFromString Lib "Foundation" (name As cfstringref) As ptr
 		    Declare Function savePanel Lib "Foundation" Selector "savePanel" ( cls As ptr ) As Ptr
 		    
-		    mptr = savePanel(ClassObj)
+		    mptr = savePanel(NSClassFromString("NSSavePanel"))
+		    
+		    Self.Constructor("NSSavePanel")
 		    
 		  #EndIf
 		End Sub
@@ -66,17 +67,16 @@ Protected Class NSSavePanelGTO
 		    mDelegateObj = New ObjC.ObjCClass("panelDelegate" + Str(Ticks), "NSObject")
 		    mDelegateObj.AddProtocol("NSOpenSavePanelDelegate")
 		    
-		    mDelegateObj.AddMethod( "panel:didChangeToDirectoryURL:", AddressOf zDidChangeToDirectoryURL, "v", "@", "@")
-		    mDelegateObj.AddMethod( "panelSelectionDidChange:", AddressOf zPanelSelectionDidChange, "v", "@")
-		    mDelegateObj.AddMethod( "panel:shouldEnableURL:", AddressOf zShouldEnableURL, "B", "@", "@")
-		    mDelegateObj.AddMethod( "panel:userEnteredFilename:confirmed:", AddressOf zUserEnteredFilename, "@", "@", "@", "B")
-		    mDelegateObj.AddMethod( "panel:validateURL:error:", AddressOf zValidateURLError, "B", "@", "@", "@")
-		    mDelegateObj.AddMethod( "panel:willExpand:", AddressOf zWillExpand, "v", "@", "B")
+		    mDelegateObj.AddMethod( "panel:userEnteredFilename:confirmed:", AddressOf zUserEnteredFilename, "@@:@@B")
+		    mDelegateObj.AddMethod( "panelSelectionDidChange:", AddressOf zPanelSelectionDidChange, "v@:@")
+		    mDelegateObj.AddMethod( "panel:didChangeToDirectoryURL:", AddressOf zDidChangeToDirectoryURL, "v@:@@")
+		    mDelegateObj.AddMethod( "panel:willExpand:", AddressOf zWillExpand, "v@:@B")
+		    mDelegateObj.AddMethod( "panel:shouldEnableURL:", AddressOf zShouldEnableURL, "B@:@@")
+		    mDelegateObj.AddMethod( "panel:validateURL:error:", AddressOf zValidateURLError, "B@:@@@")
 		    
 		    mDelegateObj.Register
 		    
 		    Declare Sub setDelegate Lib "Foundation" Selector "setDelegate:" (obj As ptr, value As Ptr)
-		    
 		    setDelegate(mPtr, mDelegateObj.Handle)
 		    
 		    If mDelegateCache = Nil Then
@@ -244,69 +244,142 @@ Protected Class NSSavePanelGTO
 		    If panel = Nil Then
 		      Return
 		    End If
-		    
-		    Declare Function getStandardizedURL Lib "Foundation" Selector "standardizedURL" (obj As ptr) As CFStringRef
-		    
-		    Dim f As New FolderItem(getStandardizedURL(url), FolderItem.PathModes.URL)
-		    // RaiseEvent DirectoryChanged(f)
+		    // call the callback method
+		    panel.zDidChangeToDirectoryURL_Callback(url)
 		  #EndIf
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub zDidChangeToDirectoryURL_Callback(url as ptr)
+		  
+		  Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
+		  Dim f As New FolderItem(getAbsoluteString(url), FolderItem.PathModes.URL)
+		  
+		  RaiseEvent DirectoryChanged(f)
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Shared Sub zPanelSelectionDidChange(obj as ptr, sel as ptr, sender as ptr)
-		  // RaiseEvent SelectionChanged
-		  break
+		  #If TargetMacOS
+		    // get the matching object
+		    Dim panel As NSSavePanelGTO = mDelegateCache.Lookup(sender, Nil)
+		    If panel = Nil Then
+		      Return
+		    End If
+		    // call the callback method
+		    panel.zPanelSelectionDidChange_Callback
+		  #EndIf
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub zPanelSelectionDidChange_Callback()
+		  RaiseEvent SelectionChanged
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Shared Function zShouldEnableURL(obj as ptr, sel as ptr, sender as ptr, url as ptr) As Boolean
-		  #If TargetMacOS
-		    Declare Function getStandardizedURL Lib "Foundation" Selector "standardizedURL" (obj As ptr) As CFStringRef
-		    
-		    Dim f As New FolderItem(getStandardizedURL(url), FolderItem.PathModes.URL)
-		    
-		    // Return ShouldDisableItem(f)
-		    break
-		  #EndIf
 		  
+		  
+		  #If TargetMacOS
+		    // get the matching object
+		    Dim panel As NSSavePanelGTO = mDelegateCache.Lookup(sender, Nil)
+		    If panel = Nil Then
+		      Return True
+		    End If
+		    // call the callback method
+		    Return panel.zShouldEnableURL_Callback(url)
+		  #EndIf
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function zShouldEnableURL_Callback(url as ptr) As Boolean
+		  Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
+		  
+		  Dim f As New FolderItem(getAbsoluteString(url), FolderItem.PathModes.URL)
+		  
+		  Return ShouldEnableItem(f)
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Shared Function zUserEnteredFilename(obj as ptr, sel as ptr, sender as ptr, filename as CFStringRef, confirmed as Boolean) As CFStringRef
-		  break
-		  // If UserEnteredFilename(filename, confirmed) Then
-		  // Return Nil
-		  // End If
-		  // 
-		  // Return filename
+		  #If TargetMacOS
+		    // get the matching object
+		    Dim panel As NSSavePanelGTO = mDelegateCache.Lookup(sender, Nil)
+		    If panel = Nil Then
+		      Return filename
+		    End If
+		    // call the callback method
+		    return panel.zUserEnteredFilename_Callback(filename, confirmed)
+		  #EndIf
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function zUserEnteredFilename_Callback(filename as CFStringRef, confirmed as Boolean) As CFStringRef
+		  If UserEnteredFilename(filename, confirmed) Then
+		    Return Nil
+		  End If
+		  
+		  Return filename
 		  
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Shared Function zValidateURLError(obj as ptr, sel as ptr, sender as ptr, url as ptr, error as ptr) As Boolean
-		  Declare Function getStandardizedURL Lib "Foundation" Selector "standardizedURL" (obj As ptr) As CFStringRef
+		  #If TargetMacOS
+		    // get the matching object
+		    Dim panel As NSSavePanelGTO = mDelegateCache.Lookup(sender, Nil)
+		    If panel = Nil Then
+		      Return False
+		    End If
+		    // call the callback method
+		    Return panel.zValidateURLError_Callback(url, error)
+		  #EndIf
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function zValidateURLError_Callback(url as ptr, error as ptr) As Boolean
 		  
-		  Dim f As New FolderItem(getStandardizedURL(url), FolderItem.PathModes.URL)
+		  Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
 		  
-		  // Dim ex As RuntimeException = ValidateItem(f)
-		  // 
-		  // If ex<>Nil Then
-		  // // TODO: Convert the RuntimeException into an NSError
-		  // Return False
-		  // End If
-		  // 
-		  // Return True
+		  Dim f As New FolderItem(getAbsoluteString(url), FolderItem.PathModes.URL)
+		  
+		  Dim ex As RuntimeException = ValidateItem(f)
+		  If ex=Nil Then
+		    Return True
+		  End If
+		  
+		  Return False
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Shared Sub zWillExpand(obj as ptr, sel as ptr, sender as ptr, expanding as Boolean)
-		  // RaiseEvent WillExpand(expanding)
-		  break
+		  
+		  #If TargetMacOS
+		    Break
+		    // get the matching object
+		    Dim panel As NSSavePanelGTO = mDelegateCache.Lookup(sender, Nil)
+		    If panel = Nil Then
+		      Return
+		    End If
+		    // call the callback method
+		    panel.zWillExpand_Callback(expanding)
+		  #EndIf
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub zWillExpand_Callback(expanding as Boolean)
+		  RaiseEvent WillExpand(expanding)
 		End Sub
 	#tag EndMethod
 
@@ -324,7 +397,7 @@ Protected Class NSSavePanelGTO
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event ShouldDisableItem(f as FolderItem) As Boolean
+		Event ShouldEnableItem(f as FolderItem) As Boolean
 	#tag EndHook
 
 	#tag Hook, Flags = &h0

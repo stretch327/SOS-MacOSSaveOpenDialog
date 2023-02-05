@@ -4,13 +4,14 @@ Inherits NSSavePanelGTO
 	#tag Method, Flags = &h0
 		Sub Constructor()
 		  #If TargetMacOS
-		    Self.Constructor("NSOpenPanel")
-		    
 		    // + (NSOpenPanel *)openPanel;
 		    Declare Function openPanel Lib "Foundation" Selector "openPanel" ( cls As ptr ) As Ptr
+		    Declare Function NSClassFromString Lib "Foundation" (name As cfstringref) As ptr
 		    
-		    mPtr = openPanel(ClassObj)
-		  #endif
+		    mPtr = openPanel(NSClassFromString("NSOpenPanel"))
+		    
+		    Self.Constructor("NSOpenPanel")
+		  #EndIf
 		End Sub
 	#tag EndMethod
 

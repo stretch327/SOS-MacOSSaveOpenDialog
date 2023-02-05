@@ -13,7 +13,7 @@ Protected Class ObjCClass
 		    Dim IMP As ptr = handle
 		    Dim types As CString = signature
 		    
-		    If Not class_addMethod(mObj, SEL, IMP, types) Then
+		    If Not class_addMethod(mClass, SEL, IMP, types) Then
 		      Raise New ObjCException("The method """ + selectorName + """ could not be added to """ + Introspection.GetType(Self).name + """")
 		    End If
 		  #EndIf
@@ -27,7 +27,7 @@ Protected Class ObjCClass
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub AddMethod(selectorName as string, handle as ptr, returnType as string, paramArray paramTypes as string)
+		Sub AddMethodXojoTypes(selectorName as string, handle as ptr, returnType as string, paramArray paramTypes as string)
 		  #If TargetMacOS
 		    CheckRegistered
 		    
@@ -37,11 +37,14 @@ Protected Class ObjCClass
 		    
 		    Dim SEL As ptr = NSSelectorFromString(selectorName)
 		    Dim IMP As ptr = handle
+		    
 		    Dim types As CString = MakeTypeEncoding(returnType, paramTypes)
 		    
-		    If Not class_addMethod(mObj, SEL, IMP, types) Then
+		    If Not class_addMethod(mClass, SEL, IMP, types) Then
 		      Raise New ObjCException("The method """ + selectorName + """ could not be added to """ + Introspection.GetType(Self).name + """")
 		    End If
+		    
+		    mAddedSelectors.append selectorName
 		  #EndIf
 		  
 		  // The docs for signature can be found at:
@@ -60,8 +63,14 @@ Protected Class ObjCClass
 		    Declare Function objc_getProtocol Lib "Foundation"(name As CString) As Ptr
 		    Declare Function class_addProtocol Lib "Foundation"(Cls As Ptr, protocol As Ptr) As Boolean
 		    
-		    If Not class_addProtocol(mObj, objc_getProtocol(name)) Then
+		    If Not class_addProtocol(mClass, objc_getProtocol(name)) Then
 		      Raise New ObjCException("The protocol """ + name + """ could not be added to """ + Introspection.GetType(Self).name + """")
+		    End If
+		    
+		    // BOOL class_conformsToProtocol(Class cls, Protocol *protocol);
+		    Declare Function class_conformsToProtocol Lib "Foundation" ( cls As Ptr, protocol As Ptr ) As Boolean
+		    If Not class_conformsToProtocol(mClass,  objc_getProtocol(name)) Then
+		      Break
 		    End If
 		  #EndIf
 		End Sub
@@ -80,9 +89,15 @@ Protected Class ObjCClass
 		  #If TargetMacOS
 		    Declare Function NSClassFromString Lib "Foundation" (name As cfstringref) As ptr
 		    Declare Function objc_allocateClassPair Lib "Foundation"(superclass As Ptr, name As CString, extraBytes As Integer) As Ptr
+		    Declare Sub objc_registerClassPair Lib "Foundation"(cls As Ptr)
 		    
-		    mobj = objc_allocateClassPair(NSClassFromString(superClassName), className, extraytes)
+		    mClass = objc_allocateClassPair(NSClassFromString(superClassName), className, extraytes)
+		    If mClass = Nil Then
+		      Raise New ObjCException("The class object was not created")
+		    End If
 		    
+		    // register the class
+		    objc_registerClassPair(mClass)
 		  #EndIf
 		End Sub
 	#tag EndMethod
@@ -96,30 +111,38 @@ Protected Class ObjCClass
 	#tag Method, Flags = &h0
 		Sub Register()
 		  #If TargetMacOS
-		    If mIsRegistered Then
-		      Raise New ObjCException("This class is already registered!")
-		    End If
-		    
-		    Declare Sub objc_registerClassPair Lib "Foundation"(cls As Ptr)
-		    
-		    objc_registerClassPair(mObj)
-		    
-		    mIsRegistered = True
-		    
 		    // Initialize it
+		    Declare Function Alloc Lib "Foundation" Selector "alloc" (cls As Ptr) As Ptr
 		    Declare Function init Lib "Foundation" Selector "init" (cls As ptr) As ptr
-		    mPtr = init(mPtr)
+		    mPtr = init(alloc(mClass))
 		    
-		    Declare Function Retain Lib "Foundation" Selector "retain" (cls As ptr) As Ptr
+		    // check to make sure the class thinks it implements the method selectors
+		    // - (BOOL)respondsToSelector:(SEL)aSelector;
+		    Declare Function respondsToSelector_ Lib "Foundation" Selector "respondsToSelector:" (obj As ptr, aSelector As Ptr) As Boolean
+		    Declare Function NSSelectorFromString Lib "Foundation" ( aSelectorName As CFStringRef ) As Ptr
 		    
-		    mPtr = Retain(mPtr)
+		    For i As Integer = 0 To UBound(mAddedSelectors)
+		      Dim name As String = mAddedSelectors(i)
+		      Dim SEL As ptr = NSSelectorFromString(name)
+		      If Not respondsToSelector_(mPtr, SEL) Then
+		        Break
+		      End If
+		    Next
 		  #EndIf
 		End Sub
 	#tag EndMethod
 
 
 	#tag Property, Flags = &h21
+		Private mAddedSelectors() As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private Shared mCache As Dictionary
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mClass As ptr
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
@@ -127,7 +150,7 @@ Protected Class ObjCClass
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
-		Private mObj As ptr
+		Private mProtocolClass As Ptr
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
