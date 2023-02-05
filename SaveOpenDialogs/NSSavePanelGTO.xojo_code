@@ -138,6 +138,25 @@ Protected Class NSSavePanelGTO
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h1
+		Protected Shared Function Folderitem2NSURL(f as FolderItem) As ptr
+		  // + (instancetype)URLWithString:(NSString *)URLString;
+		  Declare Function URLWithString_ Lib "Foundation" Selector "URLWithString:" (cls As ptr, URLString As CFStringRef) As Ptr
+		  Declare Function NSClassFromString Lib "Foundation" (name As cfstringref) As ptr
+		  
+		  Return URLWithString_(NSClassFromString("NSURL"), f.URLPath)
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Shared Function NSURL2Folderitem(nsurl as ptr) As FolderItem
+		  Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
+		  Dim f As New FolderItem(getAbsoluteString(nsurl), FolderItem.PathModes.URL)
+		  
+		  return f
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h21
 		Private Sub Response(value as integer)
 		  #If TargetMacOS
