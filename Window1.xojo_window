@@ -477,7 +477,7 @@ End
 		  // Custom save panel
 		  Dim dlg As New NSOpenPanelGTO
 		  
-		  addhandlers(mOpenDialog)
+		  addhandlers(dlg)
 		  
 		  config(dlg)
 		  dlg.PromptText = "Select some pictures"
@@ -501,7 +501,7 @@ End
 		  // Custom save panel
 		  Dim dlg As New NSOpenPanelGTO
 		  
-		  addhandlers(mOpenDialog)
+		  addhandlers(dlg)
 		  
 		  config(dlg)
 		  dlg.PromptText = "Select some files and/or folders"
