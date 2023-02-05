@@ -168,39 +168,15 @@ Protected Class NSSavePanelGTO
 		    Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
 		    
 		    If Self IsA NSOpenPanelGTO And NSOpenPanelGTO(Self).AllowMultipleSelection Then
-		      // @property(readonly, copy) NSArray<NSURL *> *URLs;
-		      Declare Function getURLs Lib "Foundation" Selector "URLs" (obj As ptr) As Ptr
-		      
-		      Dim urlArray As ptr = getURLs(mPtr)
-		      If urlArray <> Nil Then
-		        // @property(readonly) NSUInteger count;
-		        Declare Function getCount Lib "Foundation" Selector "count" (obj As ptr) As Integer
-		        // - (ObjectType)objectAtIndex:(NSUInteger)index;
-		        Declare Function objectAtIndex_ Lib "Foundation" Selector "objectAtIndex:" ( obj As ptr , index As Integer ) As Ptr
-		        Dim c As Integer = getCount(urlArray)
-		        
-		        For i As Integer = 0 To c-1
-		          items.Add New FolderItem(getAbsoluteString(objectAtIndex_(urlArray, i)), FolderItem.PathModes.URL, False)
-		        Next i
-		        
-		        RaiseEvent ItemsSelected(items)
-		        
-		        Return
-		      End If
-		    End If
-		    
-		    // @property(nullable, readonly, copy) NSURL *URL;
-		    Declare Function getURL Lib "Foundation" Selector "URL" (obj As ptr) As Ptr
-		    
-		    Dim url As ptr = getURL(mPtr)
-		    
-		    If url<>Nil Then
-		      // @property(nullable, readonly, copy) NSString *absoluteString;
-		      
-		      Dim f As New FolderItem(getAbsoluteString(url), folderitem.PathModes.URL)
-		      RaiseEvent ItemsSelected(Array(f))
+		      RaiseEvent ItemsSelected(NSOpenPanelGTO(self).SelectedFiles)
 		      Return
 		    End If
+		    
+		    Dim f As FolderItem = SelectedFile
+		    If f<>Nil Then
+		      RaiseEvent ItemsSelected(Array(f))
+		    End If
+		    
 		  #endif
 		End Sub
 	#tag EndMethod
