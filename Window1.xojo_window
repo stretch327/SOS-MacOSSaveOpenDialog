@@ -273,7 +273,17 @@ End
 		    mEventLog.Show
 		  End If
 		  
-		  mEventLog.AddEvent(txt)
+		  #Pragma BreakOnExceptions False
+		  Try
+		    mEventLog.AddEvent(txt)
+		  Catch ex As RuntimeException
+		    If mEventLog<>Nil Then
+		      mEventLog.Close
+		    End If
+		    mEventLog = New EventLog
+		    mEventLog.Show
+		    EventLog.AddEvent(txt)
+		  End Try
 		End Sub
 	#tag EndMethod
 
