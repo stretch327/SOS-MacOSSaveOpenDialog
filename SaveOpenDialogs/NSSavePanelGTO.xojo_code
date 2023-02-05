@@ -84,6 +84,12 @@ Protected Class NSSavePanelGTO
 		    End If
 		    
 		    mDelegateCache.Value(mPtr) = Self
+		    
+		    // initialize the duplicate event info
+		    zLastDirectoryChange = ""
+		    zLastEnableURL = Nil:Nil
+		    zLastUserEnteredFilename = Nil : Nil
+		    zLastValidateURLError = Nil : Nil
 		  #EndIf
 		End Sub
 	#tag EndMethod
@@ -256,11 +262,20 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h21
 		Private Sub zDidChangeToDirectoryURL_Callback(url as ptr)
-		  
-		  Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
-		  Dim f As New FolderItem(getAbsoluteString(url), FolderItem.PathModes.URL)
-		  
-		  RaiseEvent DirectoryChanged(f)
+		  #If TargetMacOS
+		    Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
+		    Dim s As String = getAbsoluteString(url)
+		    
+		    If SuppressDuplicateEvents And s = zLastDirectoryChange Then
+		      Return
+		    End If
+		    
+		    Dim f As New FolderItem(s, FolderItem.PathModes.URL)
+		    
+		    zLastDirectoryChange = s
+		    
+		    RaiseEvent DirectoryChanged(f)
+		  #EndIf
 		End Sub
 	#tag EndMethod
 
@@ -280,6 +295,7 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h21
 		Private Sub zPanelSelectionDidChange_Callback()
+		  
 		  RaiseEvent SelectionChanged
 		End Sub
 	#tag EndMethod
@@ -302,11 +318,17 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h21
 		Private Function zShouldEnableURL_Callback(url as ptr) As Boolean
-		  Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
 		  
-		  Dim f As New FolderItem(getAbsoluteString(url), FolderItem.PathModes.URL)
+		  Dim f As FolderItem = NSURL2Folderitem(url)
+		  If SuppressDuplicateEvents And f.URLPath = zLastEnableURL.Left Then
+		    Return zLastEnableURL.Right
+		  End If
 		  
-		  Return ShouldEnableItem(f)
+		  Dim rv As Boolean = ShouldEnableItem(f)
+		  
+		  zLastEnableURL = f.URLPath : rv
+		  
+		  Return rv
 		End Function
 	#tag EndMethod
 
@@ -326,9 +348,18 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h21
 		Private Function zUserEnteredFilename_Callback(filename as CFStringRef, confirmed as Boolean) As CFStringRef
+		  Dim s As String = filename
+		  If SuppressDuplicateEvents And zLastUserEnteredFilename.Left = s Then
+		    Return zLastUserEnteredFilename.Right
+		  End If
+		  
+		  
 		  If UserEnteredFilename(filename, confirmed) Then
+		    zLastUserEnteredFilename = filename : Nil
 		    Return Nil
 		  End If
+		  
+		  zLastUserEnteredFilename = filename : filename
 		  
 		  Return filename
 		  
@@ -351,16 +382,19 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h21
 		Private Function zValidateURLError_Callback(url as ptr, error as ptr) As Boolean
+		  Dim f As FolderItem = NSURL2Folderitem(url)
 		  
-		  Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
-		  
-		  Dim f As New FolderItem(getAbsoluteString(url), FolderItem.PathModes.URL)
+		  If SuppressDuplicateEvents And f.URLPath = zLastValidateURLError.Left Then
+		    Return zLastValidateURLError.Right
+		  End If
 		  
 		  Dim ex As RuntimeException = ValidateItem(f)
 		  If ex=Nil Then
+		    zLastValidateURLError = f.URLPath : True
 		    Return True
 		  End If
 		  
+		  zLastValidateURLError = f.URLPath : False
 		  Return False
 		End Function
 	#tag EndMethod
@@ -735,6 +769,10 @@ Protected Class NSSavePanelGTO
 		SuggestedFileName As String
 	#tag EndComputedProperty
 
+	#tag Property, Flags = &h0
+		SuppressDuplicateEvents As Boolean
+	#tag EndProperty
+
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
@@ -778,6 +816,26 @@ Protected Class NSSavePanelGTO
 		#tag EndSetter
 		TreatsPackagesAsFolders As Boolean
 	#tag EndComputedProperty
+
+	#tag Property, Flags = &h21
+		Private zLastDirectoryChange As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private zLastEnableURL As Pair
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private zLastSelectedItems() As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private zLastUserEnteredFilename As Pair
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private zLastValidateURLError As Pair
+	#tag EndProperty
 
 
 	#tag ViewBehavior
