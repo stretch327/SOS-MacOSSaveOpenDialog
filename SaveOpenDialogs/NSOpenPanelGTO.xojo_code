@@ -15,6 +15,27 @@ Inherits NSSavePanelGTO
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Function SelectedFiles() As FolderItem()
+		  // @property(readonly, copy) NSArray<NSURL *> *URLs;
+		  Declare Function getURLs Lib "Foundation" Selector "URLs" (obj As ptr) As Ptr
+		  
+		  Dim urlArray As ptr = getURLs(mPtr)
+		  
+		  Declare Function getCount Lib "Foundation" Selector "count" (obj As ptr) As Integer
+		  // - (ObjectType)objectAtIndex:(NSUInteger)index;
+		  Declare Function objectAtIndex_ Lib "Foundation" Selector "objectAtIndex:" ( obj As ptr , index As Integer ) As Ptr
+		  Dim c As Integer = getCount(urlArray)
+		  
+		  dim items() as FolderItem
+		  For i As Integer = 0 To c-1
+		    items.Add NSURL2Folderitem(objectAtIndex_(urlArray, i))
+		  Next i
+		  
+		  Return items
+		End Function
+	#tag EndMethod
+
 
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
