@@ -678,6 +678,24 @@ Protected Class NSSavePanelGTO
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
+			  // @property(nullable, readonly, copy) NSURL *URL;
+			  Declare Function getURL Lib "Foundation" Selector "URL" (obj As ptr) As Ptr
+			  
+			  Dim url As ptr = getURL(mPtr)
+			  
+			  If url = Nil Then
+			    Return Nil
+			  End If
+			  
+			  return NSURL2Folderitem(url)
+			End Get
+		#tag EndGetter
+		SelectedFile As FolderItem
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
 			  #If TargetMacOS
 			    // @property BOOL showsHiddenFiles;
 			    Declare Function getShowsHiddenFiles Lib "Foundation" Selector "showsHiddenFiles" (obj As ptr) As Boolean
