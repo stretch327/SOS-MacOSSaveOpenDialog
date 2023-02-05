@@ -265,9 +265,15 @@ End
 #tag WindowCode
 	#tag Method, Flags = &h21
 		Private Sub AddEvent(txt as string)
-		  EventLog.Show
+		  If mEventLog = Nil Then
+		    mEventLog = New EventLog
+		  End If
 		  
-		  EventLog.AddEvent(txt)
+		  If Not mEventLog.Visible Then
+		    mEventLog.Show
+		  End If
+		  
+		  mEventLog.AddEvent(txt)
 		End Sub
 	#tag EndMethod
 
@@ -400,6 +406,10 @@ End
 		End Sub
 	#tag EndMethod
 
+
+	#tag Property, Flags = &h21
+		Private mEventLog As EventLog
+	#tag EndProperty
 
 	#tag Property, Flags = &h21
 		Private mOpenDialog As NSOpenPanelGTO
