@@ -210,11 +210,11 @@ Begin DesktopWindow Window1
       Index           =   -2147483648
       InitialParent   =   ""
       Left            =   0
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   False
-      LockTop         =   True
+      LockTop         =   False
       Option1Value    =   False
       Option2Value    =   False
       Scope           =   0
@@ -238,11 +238,11 @@ Begin DesktopWindow Window1
       Index           =   -2147483648
       Italic          =   False
       Left            =   20
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   False
-      LockTop         =   True
+      LockRight       =   True
+      LockTop         =   False
       Multiline       =   False
       Scope           =   0
       Selectable      =   False
@@ -257,17 +257,37 @@ Begin DesktopWindow Window1
       Transparent     =   False
       Underline       =   False
       Visible         =   True
-      Width           =   560
+      Width           =   980
    End
 End
 #tag EndDesktopWindow
 
 #tag WindowCode
 	#tag Method, Flags = &h21
+		Private Sub AddEvent(txt as string)
+		  EventLog.Show
+		  
+		  EventLog.AddEvent(txt)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub AddHandlers(obj as NSSavePanelGTO)
+		  AddHandler obj.DirectoryChanged, AddressOf NSSavePanel_DirectoryChanged
+		  AddHandler obj.SelectionChanged, AddressOf NSSavePanel_SelectionChanged
+		  AddHandler obj.ShouldEnableItem, AddressOf NSSavePanel_ShouldEnableItem
+		  AddHandler obj.UserEnteredFilename, AddressOf NSSavePanel_UserEnteredFilename
+		  AddHandler obj.ValidateItem, AddressOf NSSavePanel_ValidateItem
+		  AddHandler obj.WillExpand, AddressOf NSSavePanel_WillExpand
+		  
+		  AddHandler obj.ItemsSelected, AddressOf NSSavePanel_ItemsSelected
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Sub Config(dlg as NSOpenPanelGTO)
 		  dlg.Title = "Alphabetical"
-		  
-		  AddHandler dlg.ItemsSelected, AddressOf NSSavePanel_ItemsSelected
 		  
 		  dlg.CanCreateDirectories = False
 		  dlg.CanSelectHiddenExtension = False
@@ -290,7 +310,9 @@ End
 
 	#tag Method, Flags = &h21
 		Private Sub NSSavePanel_DirectoryChanged(obj as NSSavePanelGTO, f as FolderItem)
-		  break
+		  // fires when the user changes directories
+		  
+		  AddEvent "DirectoryChanged: " + f.NativePath
 		End Sub
 	#tag EndMethod
 
@@ -302,6 +324,68 @@ End
 		  
 		  label1.Text = "Option 1: " + SaveAccessories1.Option1Value.ToString + _
 		  " Option 2: " + SaveAccessories1.Option2Value.ToString
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub NSSavePanel_SelectionChanged(obj as NSSavePanelGTO)
+		  // This event fires when the selection changes. It will also fire when the dialog first opens.
+		  
+		  AddEvent "SelectionChanged"
+		  
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function NSSavePanel_ShouldEnableItem(obj as NSSavePanelGTO, f as FolderItem) As Boolean
+		  // In an Open Panel, this event fires for every item in the panel
+		  // In a Save Panel, this event fires only for directories
+		  
+		  AddEvent "ShouldEnableItem: " + f.NativePath
+		  
+		  // you must return true for the passed item to be enabled
+		  Return True
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function NSSavePanel_UserEnteredFilename(obj as NSSavePanelGTO, filename as string, confirmed as boolean) As Boolean
+		  // Tells the delegate that the user confirmed a filename choice by clicking Save/Open in a Save panel.
+		  // Return True to prevent the dialog from closing
+		  AddEvent "UserEnteredFilename: " + filename + " : " + If(confirmed, "True", "False")
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function NSSavePanel_ValidateItem(obj as NSSavePanelGTO, f as FolderItem) As RuntimeException
+		  // Fires after the user has pressed Save/Open
+		  // Returning an exception will cause the dialog to stay open
+		  
+		  AddEvent "ValidateItem: " + f.NativePath
+		  
+		  Dim ex As New RuntimeException("test")
+		  
+		  Return ex
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub NSSavePanel_WillExpand(obj as NSSavePanelGTO, expanding as Boolean)
+		  // fires when the user expands/contracts the panel
+		  
+		  If expanding Then
+		    AddEvent "WillExpand: True"
+		  Else
+		    AddEvent "WillExpand: False"
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub ResizeLists()
+		  
 		End Sub
 	#tag EndMethod
 
@@ -335,8 +419,8 @@ End
 		  
 		  // Custom save panel
 		  mSaveDialog = New NSSavePanelGTO
-		  AddHandler mSaveDialog.ItemsSelected, AddressOf NSSavePanel_ItemsSelected
-		  AddHandler mSaveDialog.DirectoryChanged, AddressOf NSSavePanel_DirectoryChanged
+		  
+		  addhandlers(mSaveDialog)
 		  
 		  SaveAccessories1.SetFileTypes(types)
 		  SaveAccessories1.Reset
@@ -367,6 +451,9 @@ End
 		  
 		  // Custom save panel
 		  Dim mOpenDialog As New NSOpenPanelGTO
+		  
+		  addhandlers(mOpenDialog)
+		  
 		  config(mOpenDialog)
 		  mOpenDialog.PromptText = "Select a picture"
 		  mOpenDialog.ActionButtonCaption = "Select"
@@ -377,7 +464,7 @@ End
 		  mOpenDialog.CanChooseFiles = True
 		  mOpenDialog.AllowMultipleSelection = False
 		  
-		  mOpenDialog.Show
+		  mOpenDialog.ShowWithin(self)
 		  
 		  
 		End Sub
@@ -389,6 +476,9 @@ End
 		  
 		  // Custom save panel
 		  Dim dlg As New NSOpenPanelGTO
+		  
+		  addhandlers(mOpenDialog)
+		  
 		  config(dlg)
 		  dlg.PromptText = "Select some pictures"
 		  dlg.ActionButtonCaption = "Select"
@@ -398,7 +488,7 @@ End
 		  dlg.CanChooseFiles = True
 		  dlg.AllowMultipleSelection = True
 		  
-		  dlg.Show
+		  dlg.ShowWithin(self)
 		  
 		  
 		End Sub
@@ -410,6 +500,9 @@ End
 		  
 		  // Custom save panel
 		  Dim dlg As New NSOpenPanelGTO
+		  
+		  addhandlers(mOpenDialog)
+		  
 		  config(dlg)
 		  dlg.PromptText = "Select some files and/or folders"
 		  dlg.ActionButtonCaption = "Select"
@@ -421,7 +514,7 @@ End
 		  dlg.TreatsPackagesAsFolders = False
 		  dlg.ResolvesAliases = True
 		  dlg.Filter = Array(FileTypeGroup2.Any, FileTypeGroup2.ApplicationBundle)
-		  dlg.Show
+		  dlg.ShowWithin(Self)
 		  
 		  
 		End Sub

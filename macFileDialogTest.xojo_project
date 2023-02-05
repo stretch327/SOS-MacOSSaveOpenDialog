@@ -16,6 +16,7 @@ Class=MacOSVersion;SaveOpenDialogs/MacOSVersion.xojo_code;&h00000000787DE7FF;&h0
 Module=ObjC;SaveOpenDialogs/ObjC.xojo_code;&h00000000170667FF;&h0000000061666FFF;false
 Class=ObjCClass;SaveOpenDialogs/ObjC/ObjCClass.xojo_code;&h0000000027187FFF;&h00000000170667FF;false
 Class=ObjCException;SaveOpenDialogs/ObjC/ObjCException.xojo_code;&h000000007314DFFF;&h00000000170667FF;false
+DesktopWindow=EventLog;EventLog.xojo_window;&h0000000008F69FFF;&h0000000000000000;false
 DefaultWindow=Window1
 AppMenuBar=MainMenuBar
 MajorVersion=1
