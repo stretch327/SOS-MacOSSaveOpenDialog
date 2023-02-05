@@ -255,6 +255,15 @@ Protected Class NSSavePanelGTO
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Sub ValidateVisibleColumns()
+		  // - (void)validateVisibleColumns;
+		  Declare Sub validateVisibleColumns Lib "Foundation" Selector "validateVisibleColumns" (obj As ptr)
+		  
+		  validateVisibleColumns(mPtr)
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21
 		Private Shared Sub zDidChangeToDirectoryURL(obj as ptr, sel as ptr, sender as ptr, url as ptr)
 		  #If TargetMacOS
