@@ -403,7 +403,6 @@ Protected Class NSSavePanelGTO
 		Private Shared Sub zWillExpand(obj as ptr, sel as ptr, sender as ptr, expanding as Boolean)
 		  
 		  #If TargetMacOS
-		    Break
 		    // get the matching object
 		    Dim panel As NSSavePanelGTO = mDelegateCache.Lookup(sender, Nil)
 		    If panel = Nil Then
