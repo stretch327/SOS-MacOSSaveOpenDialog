@@ -314,7 +314,7 @@ End
 		  dlg.SuggestedFileName = "Untitled"
 		  dlg.ShowsHiddenFiles = True
 		  dlg.ShowsTagField = True
-		  dlg.TreatsPackagesAsFolders = True
+		  dlg.TreatsPackagesAsFolders = False
 		  
 		  dlg.Filter = Array(FileTypeGroup1.Jpeg, FileTypeGroup1.Png)
 		  
@@ -357,8 +357,13 @@ End
 		Private Function NSSavePanel_ShouldEnableItem(obj as NSSavePanelGTO, f as FolderItem) As Boolean
 		  // In an Open Panel, this event fires for every item in the panel
 		  // In a Save Panel, this event fires only for directories
+		  // It does not appear that you can enable items that are disabled by the filter
 		  
 		  AddEvent "ShouldEnableItem: " + f.NativePath
+		  
+		  If f.Directory And Not f.Visible Then
+		    Return False
+		  End If
 		  
 		  // you must return true for the passed item to be enabled
 		  Return True
@@ -445,7 +450,7 @@ End
 		  SaveAccessories1.SetFileTypes(types)
 		  SaveAccessories1.Reset
 		  mSaveDialog.AccessoryView = SaveAccessories1
-		  
+		  mSaveDialog.SuppressDuplicateEvents = True
 		  mSaveDialog.ActionButtonCaption = "Save"
 		  mSaveDialog.CanCreateDirectories = False
 		  mSaveDialog.CanSelectHiddenExtension = True
