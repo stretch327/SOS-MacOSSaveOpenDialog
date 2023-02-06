@@ -130,7 +130,7 @@ Protected Class NSSavePanelGTO
 		    Dim arr As ptr = arrayWithCapacity_(NSClassFromString("NSMutableArray"), UBound(value)+1)
 		    Dim UTType As ptr = NSClassFromString("UTType")
 		    For i As Integer = 0 To UBound(value)
-		      If MacOSVersion.MajorVersion <= 12 Then
+		      If MacOSVersion.MajorVersion <= 10 Then
 		        addStringObject_(arr, value(i).UTI)
 		      Else
 		        Dim t As ptr = exportedTypeWithIdentifier_(UTType, value(i).UTI)
@@ -141,7 +141,7 @@ Protected Class NSSavePanelGTO
 		      End If
 		    Next i
 		    
-		    If MacOSVersion.MajorVersion <= 12 Then
+		    If MacOSVersion.MajorVersion <= 10 Then
 		      setAllowedFileTypes(mPtr, arr)
 		    Else
 		      setAllowedContentTypes(mPtr, arr)
