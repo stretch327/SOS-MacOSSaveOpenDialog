@@ -86,7 +86,7 @@ Protected Class NSSavePanelGTO
 		    mDelegateCache.Value(mPtr) = Self
 		    
 		    // initialize the duplicate event info
-		    zLastDirectoryChange = ""
+		    zLastDirectoryChange = "":0
 		    zLastEnableURL = Nil:Nil
 		    zLastUserEnteredFilename = Nil : Nil
 		    zLastValidateURLError = Nil : Nil
@@ -280,13 +280,13 @@ Protected Class NSSavePanelGTO
 		    Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
 		    Dim s As String = getAbsoluteString(url)
 		    
-		    If SuppressDuplicateEvents And s = zLastDirectoryChange Then
+		    If SuppressDuplicateEvents And s = zLastDirectoryChange.Left And (Ticks - zlastdirectorychange.Right) <= 7 Then
 		      Return
 		    End If
 		    
 		    Dim f As New FolderItem(s, FolderItem.PathModes.URL)
 		    
-		    zLastDirectoryChange = s
+		    zLastDirectoryChange = s : ticks
 		    
 		    RaiseEvent DirectoryChanged(f)
 		  #EndIf
@@ -829,7 +829,7 @@ Protected Class NSSavePanelGTO
 	#tag EndComputedProperty
 
 	#tag Property, Flags = &h21
-		Private zLastDirectoryChange As String
+		Private zLastDirectoryChange As Pair
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
@@ -838,6 +838,10 @@ Protected Class NSSavePanelGTO
 
 	#tag Property, Flags = &h21
 		Private zLastSelectedItems() As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private zLastSelectionChanged As Integer
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
