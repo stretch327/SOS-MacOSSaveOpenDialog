@@ -346,8 +346,24 @@ End
 	#tag Method, Flags = &h21
 		Private Sub NSSavePanel_SelectionChanged(obj as NSSavePanelGTO)
 		  // This event fires when the selection changes. It will also fire when the dialog first opens.
+		  Dim path As String = "Nil"
 		  
-		  AddEvent "SelectionChanged"
+		  // if doing it this way, you need to check for the Open panel first because OpenPanel is a 
+		  // subclass of SavePanel
+		  If obj IsA NSOpenPanelGTO Then
+		    AddEvent "Selection Reset"
+		    Dim items() As FolderItem = NSOpenPanelGTO(obj).SelectedFiles
+		    For i As Integer = 0 To UBound(items)
+		      AddEvent "Selected: " + items(i).NativePath
+		    Next
+		  ElseIf obj IsA NSSavePanelGTO Then
+		    Dim f As FolderItem = obj.SelectedFile
+		    If f <> Nil Then
+		      path = f.NativePath
+		    End If
+		    AddEvent "SelectionChanged: " + path + "  " + Str(Ticks/6,"0")
+		  End If
+		  
 		  
 		  
 		End Sub
