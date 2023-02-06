@@ -302,25 +302,25 @@ End
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Sub Config(dlg as NSOpenPanelGTO)
-		  dlg.Title = "Alphabetical"
+		Private Sub Config(mDialog as NSOpenPanelGTO)
+		  mDialog.Title = "Alphabetical"
 		  
-		  dlg.CanCreateDirectories = False
-		  dlg.CanSelectHiddenExtension = False
-		  dlg.ExtensionHidden = False
-		  dlg.InitialFolder = SpecialFolder.Desktop
-		  dlg.PromptText = "Pick a picture"
-		  dlg.NameFieldLabel = "Filename:"
-		  dlg.SuggestedFileName = "Untitled"
-		  dlg.ShowsHiddenFiles = True
-		  dlg.ShowsTagField = True
-		  dlg.TreatsPackagesAsFolders = False
+		  mDialog.CanCreateDirectories = False
+		  mDialog.CanSelectHiddenExtension = False
+		  mDialog.ExtensionHidden = False
+		  mDialog.InitialFolder = SpecialFolder.Desktop
+		  mDialog.PromptText = "Pick a picture"
+		  mDialog.NameFieldLabel = "Filename:"
+		  mDialog.SuggestedFileName = "Untitled"
+		  mDialog.ShowsHiddenFiles = True
+		  mDialog.ShowsTagField = True
+		  mDialog.TreatsPackagesAsFolders = False
 		  
-		  dlg.Filter = Array(FileTypeGroup1.Jpeg, FileTypeGroup1.Png)
+		  mDialog.Filter = Array(FileTypeGroup1.Jpeg, FileTypeGroup1.Png)
 		  
-		  dlg.CanChooseDirectories = False
-		  dlg.CanChooseFiles = False
-		  dlg.ResolvesAliases = False
+		  mDialog.CanChooseDirectories = False
+		  mDialog.CanChooseFiles = False
+		  mDialog.ResolvesAliases = False
 		End Sub
 	#tag EndMethod
 
@@ -436,15 +436,11 @@ End
 
 
 	#tag Property, Flags = &h21
+		Private mDialog As NSSavePanelGTO
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private mEventLog As EventLog
-	#tag EndProperty
-
-	#tag Property, Flags = &h21
-		Private mOpenDialog As NSOpenPanelGTO
-	#tag EndProperty
-
-	#tag Property, Flags = &h21
-		Private mSaveDialog As NSSavePanelGTO
 	#tag EndProperty
 
 
@@ -456,28 +452,28 @@ End
 		  Dim types() As FileType = Array(FileTypeGroup2.Text, FileTypeGroup2.Rtf, FileTypeGroup2.Pdf)
 		  
 		  // Custom save panel
-		  mSaveDialog = New NSSavePanelGTO
+		  mDialog = New NSSavePanelGTO
 		  
-		  addhandlers(mSaveDialog)
+		  addhandlers(mDialog)
 		  
 		  SaveAccessories1.SetFileTypes(types)
 		  SaveAccessories1.Reset
-		  mSaveDialog.AccessoryView = SaveAccessories1
-		  mSaveDialog.SuppressDuplicateEvents = True
-		  mSaveDialog.ActionButtonCaption = "Save"
-		  mSaveDialog.CanCreateDirectories = False
-		  mSaveDialog.CanSelectHiddenExtension = True
-		  mSaveDialog.ExtensionHidden = False
-		  mSaveDialog.Filter = types
-		  mSaveDialog.InitialFolder = SpecialFolder.Desktop
-		  mSaveDialog.NameFieldLabel = "Filename:"
-		  mSaveDialog.PromptText = "Where do you want to save?"
-		  mSaveDialog.SuggestedFileName = "Untitled.txt"
-		  mSaveDialog.ShowsHiddenFiles = True
-		  mSaveDialog.ShowsTagField = True
-		  mSaveDialog.Title = "Alphabetical"
-		  mSaveDialog.TreatsPackagesAsFolders = True
-		  mSaveDialog.ShowWithin(Self)
+		  mDialog.AccessoryView = SaveAccessories1
+		  mDialog.SuppressDuplicateEvents = True
+		  mDialog.ActionButtonCaption = "Save"
+		  mDialog.CanCreateDirectories = False
+		  mDialog.CanSelectHiddenExtension = True
+		  mDialog.ExtensionHidden = False
+		  mDialog.Filter = types
+		  mDialog.InitialFolder = SpecialFolder.Desktop
+		  mDialog.NameFieldLabel = "Filename:"
+		  mDialog.PromptText = "Where do you want to save?"
+		  mDialog.SuggestedFileName = "Untitled.txt"
+		  mDialog.ShowsHiddenFiles = True
+		  mDialog.ShowsTagField = True
+		  mDialog.Title = "Alphabetical"
+		  mDialog.TreatsPackagesAsFolders = True
+		  mDialog.ShowWithin(Self)
 		  
 		  
 		End Sub
@@ -487,22 +483,23 @@ End
 	#tag Event
 		Sub Pressed()
 		  
-		  // Custom save panel
-		  Dim mOpenDialog As New NSOpenPanelGTO
+		  // Custom open panel
+		  mDialog = New NSOpenPanelGTO
+		  Dim dlg As NSOpenPanelGTO = NSOpenPanelGTO(mDialog) // so we don't have to do a bunch of casting
 		  
-		  addhandlers(mOpenDialog)
+		  addhandlers(mDialog)
 		  
-		  config(mOpenDialog)
-		  mOpenDialog.PromptText = "Select a picture"
-		  mOpenDialog.ActionButtonCaption = "Select"
+		  config(dlg)
+		  dlg.PromptText = "Select a picture"
+		  dlg.ActionButtonCaption = "Select"
 		  SaveAccessories1.Reset
 		  
-		  mOpenDialog.AccessoryView = SaveAccessories1
-		  mOpenDialog.CanChooseDirectories = False
-		  mOpenDialog.CanChooseFiles = True
-		  mOpenDialog.AllowMultipleSelection = False
+		  dlg.AccessoryView = SaveAccessories1
+		  dlg.CanChooseDirectories = False
+		  dlg.CanChooseFiles = True
+		  dlg.AllowMultipleSelection = False
 		  
-		  mOpenDialog.ShowWithin(self)
+		  dlg.ShowWithin(Self)
 		  
 		  
 		End Sub
@@ -512,8 +509,9 @@ End
 	#tag Event
 		Sub Pressed()
 		  
-		  // Custom save panel
-		  Dim dlg As New NSOpenPanelGTO
+		  // Custom open panel
+		  mDialog = New NSOpenPanelGTO
+		  Dim dlg As NSOpenPanelGTO = NSOpenPanelGTO(mDialog) // so we don't have to do a bunch of casting
 		  
 		  addhandlers(dlg)
 		  
@@ -526,7 +524,7 @@ End
 		  dlg.CanChooseFiles = True
 		  dlg.AllowMultipleSelection = True
 		  
-		  dlg.ShowWithin(self)
+		  dlg.ShowWithin(Self)
 		  
 		  
 		End Sub
@@ -536,8 +534,9 @@ End
 	#tag Event
 		Sub Pressed()
 		  
-		  // Custom save panel
-		  Dim dlg As New NSOpenPanelGTO
+		  // Custom open panel
+		  mDialog = New NSOpenPanelGTO
+		  Dim dlg As NSOpenPanelGTO = NSOpenPanelGTO(mDialog) // so we don't have to do a bunch of casting
 		  
 		  addhandlers(dlg)
 		  
@@ -563,7 +562,7 @@ End
 		Sub FileTypeChanged(type as FileType)
 		  // set the filter on the dialog to the selected type
 		  // this will automagically change the extension of the file
-		  mSaveDialog.Filter = Array(type)
+		  mDialog.Filter = Array(type)
 		End Sub
 	#tag EndEvent
 #tag EndEvents
