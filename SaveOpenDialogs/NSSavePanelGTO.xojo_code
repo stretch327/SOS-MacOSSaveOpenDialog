@@ -396,24 +396,13 @@ Protected Class NSSavePanelGTO
 		Private Function zValidateURLError_Callback(url as ptr, error as ptr) As Boolean
 		  Dim f As FolderItem = NSURL2Folderitem(url)
 		  
-		  If SuppressDuplicateEvents And f.URLPath = zLastValidateURLError.Left Then
-		    Return zLastValidateURLError.Right
-		  End If
+		  Return Not ValidateItem(f)
 		  
-		  Dim ex As RuntimeException = ValidateItem(f)
-		  If ex=Nil Then
-		    zLastValidateURLError = f.URLPath : True
-		    Return True
-		  End If
-		  
-		  zLastValidateURLError = f.URLPath : False
-		  Return False
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Shared Sub zWillExpand(obj as ptr, sel as ptr, sender as ptr, expanding as Boolean)
-		  
 		  #If TargetMacOS
 		    // get the matching object
 		    Dim panel As NSSavePanelGTO = mDelegateCache.Lookup(sender, Nil)
@@ -462,7 +451,7 @@ Protected Class NSSavePanelGTO
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
-		Event ValidateItem(f as FolderItem) As RuntimeException
+		Event ValidateItem(f as FolderItem) As Boolean
 	#tag EndHook
 
 	#tag Hook, Flags = &h0

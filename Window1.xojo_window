@@ -379,16 +379,13 @@ End
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Function NSSavePanel_ValidateItem(obj as NSSavePanelGTO, f as FolderItem) As RuntimeException
+		Private Function NSSavePanel_ValidateItem(obj as NSSavePanelGTO, f as FolderItem) As Boolean
 		  // Fires after the user has pressed Save/Open
 		  // Returning an exception will cause the dialog to stay open
 		  
 		  AddEvent "ValidateItem: " + f.NativePath
 		  
-		  Dim ex As New RuntimeException("test")
-		  
-		  // Return ex
-		  
+		  return True
 		End Function
 	#tag EndMethod
 
