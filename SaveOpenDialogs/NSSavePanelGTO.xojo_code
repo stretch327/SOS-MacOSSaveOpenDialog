@@ -95,6 +95,20 @@ Protected Class NSSavePanelGTO
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub Destructor()
+		  #If TargetMacOS
+		    Declare Sub setDelegate Lib "Foundation" Selector "setDelegate:" (obj As ptr, value As Ptr)
+		    setDelegate(mPtr, Nil)
+		    
+		    If mDelegateCache.HasKey(mPtr) Then
+		      mDelegateCache.Remove(mPtr)
+		    End If
+		  #EndIf
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub Filter(assigns value() as FileType)
 		  #If TargetMacOS
 		    Declare Sub setAllowedContentTypes Lib "Foundation" Selector "setAllowedContentTypes:" (obj As ptr, value As Ptr)
