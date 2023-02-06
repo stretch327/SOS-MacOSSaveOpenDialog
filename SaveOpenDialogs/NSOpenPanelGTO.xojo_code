@@ -4,14 +4,39 @@ Inherits NSSavePanelGTO
 	#tag Method, Flags = &h0
 		Sub Constructor()
 		  #If TargetMacOS
-		    Self.Constructor("NSOpenPanel")
-		    
 		    // + (NSOpenPanel *)openPanel;
 		    Declare Function openPanel Lib "Foundation" Selector "openPanel" ( cls As ptr ) As Ptr
+		    Declare Function NSClassFromString Lib "Foundation" (name As cfstringref) As ptr
 		    
-		    mPtr = openPanel(ClassObj)
-		  #endif
+		    mPtr = openPanel(NSClassFromString("NSOpenPanel"))
+		    
+		    Self.Constructor("NSOpenPanel")
+		  #EndIf
 		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function SelectedFiles() As FolderItem()
+		  #If TargetMacOS
+		    // @property(readonly, copy) NSArray<NSURL *> *URLs;
+		    Declare Function getURLs Lib "Foundation" Selector "URLs" (obj As ptr) As Ptr
+		    
+		    Dim urlArray As ptr = getURLs(mPtr)
+		    
+		    Declare Function getCount Lib "Foundation" Selector "count" (obj As ptr) As Integer
+		    // - (ObjectType)objectAtIndex:(NSUInteger)index;
+		    Declare Function objectAtIndex_ Lib "Foundation" Selector "objectAtIndex:" ( obj As ptr , index As Integer ) As Ptr
+		    Dim c As Integer = getCount(urlArray)
+		    
+		    Dim items() As FolderItem
+		    For i As Integer = 0 To c-1
+		      items.Add NSURL2Folderitem(objectAtIndex_(urlArray, i))
+		    Next i
+		    
+		    Return items
+		  #EndIf
+		  
+		End Function
 	#tag EndMethod
 
 
@@ -166,6 +191,14 @@ Inherits NSSavePanelGTO
 
 
 	#tag ViewBehavior
+		#tag ViewProperty
+			Name="SuppressDuplicateEvents"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
 		#tag ViewProperty
 			Name="Title"
 			Visible=false

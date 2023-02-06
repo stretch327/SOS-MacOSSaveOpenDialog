@@ -43,12 +43,14 @@ Protected Class NSSavePanelGTO
 	#tag Method, Flags = &h0
 		Sub Constructor()
 		  #If TargetMacOS
-		    Self.Constructor("NSSavePanel")
-		    
+		    Declare Function NSClassFromString Lib "Foundation" (name As cfstringref) As ptr
 		    Declare Function savePanel Lib "Foundation" Selector "savePanel" ( cls As ptr ) As Ptr
 		    
-		    mptr = savePanel(ClassObj)
-		  #endif
+		    mptr = savePanel(NSClassFromString("NSSavePanel"))
+		    
+		    Self.Constructor("NSSavePanel")
+		    
+		  #EndIf
 		End Sub
 	#tag EndMethod
 
@@ -60,7 +62,49 @@ Protected Class NSSavePanelGTO
 		    ClassObj = NSClassFromString(superclass)
 		    
 		    mClassName = superclass
+		    
+		    // create a delegate class so that we can satisfy the NSOpenSavePanelDelegate protocol
+		    mDelegateObj = New ObjC.ObjCClass("panelDelegate" + Str(Ticks), "NSObject")
+		    mDelegateObj.AddProtocol("NSOpenSavePanelDelegate")
+		    
+		    mDelegateObj.AddMethod( "panel:userEnteredFilename:confirmed:", AddressOf zUserEnteredFilename, "@@:@@B")
+		    mDelegateObj.AddMethod( "panelSelectionDidChange:", AddressOf zPanelSelectionDidChange, "v@:@")
+		    mDelegateObj.AddMethod( "panel:didChangeToDirectoryURL:", AddressOf zDidChangeToDirectoryURL, "v@:@@")
+		    mDelegateObj.AddMethod( "panel:willExpand:", AddressOf zWillExpand, "v@:@B")
+		    mDelegateObj.AddMethod( "panel:shouldEnableURL:", AddressOf zShouldEnableURL, "B@:@@")
+		    mDelegateObj.AddMethod( "panel:validateURL:error:", AddressOf zValidateURLError, "B@:@@@")
+		    
+		    mDelegateObj.Register
+		    
+		    Declare Sub setDelegate Lib "Foundation" Selector "setDelegate:" (obj As ptr, value As Ptr)
+		    setDelegate(mPtr, mDelegateObj.Handle)
+		    
+		    If mDelegateCache = Nil Then
+		      mDelegateCache = New Dictionary
+		    End If
+		    
+		    mDelegateCache.Value(mPtr) = Self
+		    
+		    // initialize the duplicate event info
+		    zLastDirectoryChange = "":0
+		    zLastEnableURL = Nil:Nil
+		    zLastUserEnteredFilename = Nil : Nil
+		    zLastValidateURLError = Nil : Nil
 		  #EndIf
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub Destructor()
+		  #If TargetMacOS
+		    Declare Sub setDelegate Lib "Foundation" Selector "setDelegate:" (obj As ptr, value As Ptr)
+		    setDelegate(mPtr, Nil)
+		    
+		    If mDelegateCache.HasKey(mPtr) Then
+		      mDelegateCache.Remove(mPtr)
+		    End If
+		  #EndIf
+		  
 		End Sub
 	#tag EndMethod
 
@@ -86,7 +130,7 @@ Protected Class NSSavePanelGTO
 		    Dim arr As ptr = arrayWithCapacity_(NSClassFromString("NSMutableArray"), UBound(value)+1)
 		    Dim UTType As ptr = NSClassFromString("UTType")
 		    For i As Integer = 0 To UBound(value)
-		      If MacOSVersion.MajorVersion <= 12 Then
+		      If MacOSVersion.MajorVersion <= 10 Then
 		        addStringObject_(arr, value(i).UTI)
 		      Else
 		        Dim t As ptr = exportedTypeWithIdentifier_(UTType, value(i).UTI)
@@ -97,7 +141,7 @@ Protected Class NSSavePanelGTO
 		      End If
 		    Next i
 		    
-		    If MacOSVersion.MajorVersion <= 12 Then
+		    If MacOSVersion.MajorVersion <= 10 Then
 		      setAllowedFileTypes(mPtr, arr)
 		    Else
 		      setAllowedContentTypes(mPtr, arr)
@@ -114,6 +158,29 @@ Protected Class NSSavePanelGTO
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h1
+		Protected Shared Function Folderitem2NSURL(f as FolderItem) As ptr
+		  #If TargetMacOS
+		    // + (instancetype)URLWithString:(NSString *)URLString;
+		    Declare Function URLWithString_ Lib "Foundation" Selector "URLWithString:" (cls As ptr, URLString As CFStringRef) As Ptr
+		    Declare Function NSClassFromString Lib "Foundation" (name As cfstringref) As ptr
+		    
+		    Return URLWithString_(NSClassFromString("NSURL"), f.URLPath)
+		  #endif
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Shared Function NSURL2Folderitem(nsurl as ptr) As FolderItem
+		  #If TargetMacOS
+		    Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
+		    Dim f As New FolderItem(getAbsoluteString(nsurl), FolderItem.PathModes.URL)
+		    
+		    Return f
+		  #endif
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h21
 		Private Sub Response(value as integer)
 		  #If TargetMacOS
@@ -125,39 +192,15 @@ Protected Class NSSavePanelGTO
 		    Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
 		    
 		    If Self IsA NSOpenPanelGTO And NSOpenPanelGTO(Self).AllowMultipleSelection Then
-		      // @property(readonly, copy) NSArray<NSURL *> *URLs;
-		      Declare Function getURLs Lib "Foundation" Selector "URLs" (obj As ptr) As Ptr
-		      
-		      Dim urlArray As ptr = getURLs(mPtr)
-		      If urlArray <> Nil Then
-		        // @property(readonly) NSUInteger count;
-		        Declare Function getCount Lib "Foundation" Selector "count" (obj As ptr) As Integer
-		        // - (ObjectType)objectAtIndex:(NSUInteger)index;
-		        Declare Function objectAtIndex_ Lib "Foundation" Selector "objectAtIndex:" ( obj As ptr , index As Integer ) As Ptr
-		        Dim c As Integer = getCount(urlArray)
-		        
-		        For i As Integer = 0 To c-1
-		          items.Add New FolderItem(getAbsoluteString(objectAtIndex_(urlArray, i)), FolderItem.PathModes.URL, False)
-		        Next i
-		        
-		        RaiseEvent ItemsSelected(items)
-		        
-		        Return
-		      End If
-		    End If
-		    
-		    // @property(nullable, readonly, copy) NSURL *URL;
-		    Declare Function getURL Lib "Foundation" Selector "URL" (obj As ptr) As Ptr
-		    
-		    Dim url As ptr = getURL(mPtr)
-		    
-		    If url<>Nil Then
-		      // @property(nullable, readonly, copy) NSString *absoluteString;
-		      
-		      Dim f As New FolderItem(getAbsoluteString(url), folderitem.PathModes.URL)
-		      RaiseEvent ItemsSelected(Array(f))
+		      RaiseEvent ItemsSelected(NSOpenPanelGTO(self).SelectedFiles)
 		      Return
 		    End If
+		    
+		    Dim f As FolderItem = SelectedFile
+		    If f<>Nil Then
+		      RaiseEvent ItemsSelected(Array(f))
+		    End If
+		    
 		  #endif
 		End Sub
 	#tag EndMethod
@@ -206,9 +249,210 @@ Protected Class NSSavePanelGTO
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Sub ValidateVisibleColumns()
+		  #If TargetMacOS
+		    // - (void)validateVisibleColumns;
+		    Declare Sub validateVisibleColumns Lib "Foundation" Selector "validateVisibleColumns" (obj As ptr)
+		    
+		    validateVisibleColumns(mPtr)
+		  #endif
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Shared Sub zDidChangeToDirectoryURL(obj as ptr, sel as ptr, sender as ptr, url as ptr)
+		  #If TargetMacOS
+		    // get the matching object
+		    Dim panel As NSSavePanelGTO = mDelegateCache.Lookup(sender, Nil)
+		    If panel = Nil Then
+		      Return
+		    End If
+		    // call the callback method
+		    panel.zDidChangeToDirectoryURL_Callback(url)
+		  #EndIf
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub zDidChangeToDirectoryURL_Callback(url as ptr)
+		  #If TargetMacOS
+		    Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
+		    Dim s As String = getAbsoluteString(url)
+		    
+		    If SuppressDuplicateEvents And s = zLastDirectoryChange.Left And (Ticks - zlastdirectorychange.Right) <= 7 Then
+		      Return
+		    End If
+		    
+		    Dim f As New FolderItem(s, FolderItem.PathModes.URL)
+		    
+		    zLastDirectoryChange = s : ticks
+		    
+		    RaiseEvent DirectoryChanged(f)
+		  #EndIf
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Shared Sub zPanelSelectionDidChange(obj as ptr, sel as ptr, sender as ptr)
+		  #If TargetMacOS
+		    // get the matching object
+		    Dim panel As NSSavePanelGTO = mDelegateCache.Lookup(sender, Nil)
+		    If panel = Nil Then
+		      Return
+		    End If
+		    // call the callback method
+		    panel.zPanelSelectionDidChange_Callback
+		  #EndIf
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub zPanelSelectionDidChange_Callback()
+		  Dim ct As Double = Ticks
+		  If ct - zLastSelectionChanged < 7 Then
+		    Return
+		  End If
+		  
+		  zLastSelectionChanged = ct
+		  
+		  RaiseEvent SelectionChanged
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Shared Function zShouldEnableURL(obj as ptr, sel as ptr, sender as ptr, url as ptr) As Boolean
+		  #If TargetMacOS
+		    // get the matching object
+		    Dim panel As NSSavePanelGTO = mDelegateCache.Lookup(sender, Nil)
+		    If panel = Nil Then
+		      Return True
+		    End If
+		    // call the callback method
+		    Return panel.zShouldEnableURL_Callback(url)
+		  #EndIf
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function zShouldEnableURL_Callback(url as ptr) As Boolean
+		  
+		  Dim f As FolderItem = NSURL2Folderitem(url)
+		  If SuppressDuplicateEvents And f.URLPath = zLastEnableURL.Left Then
+		    Return zLastEnableURL.Right
+		  End If
+		  
+		  Dim rv As Boolean = ShouldEnableItem(f)
+		  
+		  zLastEnableURL = f.URLPath : rv
+		  
+		  Return rv
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Shared Function zUserEnteredFilename(obj as ptr, sel as ptr, sender as ptr, filename as CFStringRef, confirmed as Boolean) As CFStringRef
+		  #If TargetMacOS
+		    // get the matching object
+		    Dim panel As NSSavePanelGTO = mDelegateCache.Lookup(sender, Nil)
+		    If panel = Nil Then
+		      Return filename
+		    End If
+		    // call the callback method
+		    return panel.zUserEnteredFilename_Callback(filename, confirmed)
+		  #EndIf
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function zUserEnteredFilename_Callback(filename as CFStringRef, confirmed as Boolean) As CFStringRef
+		  If UserEnteredFilename(filename, confirmed) Then
+		    Return Nil
+		  End If
+		  
+		  Return filename
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Shared Function zValidateURLError(obj as ptr, sel as ptr, sender as ptr, url as ptr, error as ptr) As Boolean
+		  #If TargetMacOS
+		    // get the matching object
+		    Dim panel As NSSavePanelGTO = mDelegateCache.Lookup(sender, Nil)
+		    If panel = Nil Then
+		      Return False
+		    End If
+		    // call the callback method
+		    Return panel.zValidateURLError_Callback(url, error)
+		  #EndIf
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function zValidateURLError_Callback(url as ptr, error as ptr) As Boolean
+		  Dim f As FolderItem = NSURL2Folderitem(url)
+		  
+		  Return Not ValidateItem(f)
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Shared Sub zWillExpand(obj as ptr, sel as ptr, sender as ptr, expanding as Boolean)
+		  #If TargetMacOS
+		    // get the matching object
+		    Dim panel As NSSavePanelGTO = mDelegateCache.Lookup(sender, Nil)
+		    If panel = Nil Then
+		      Return
+		    End If
+		    // call the callback method
+		    panel.zWillExpand_Callback(expanding)
+		  #EndIf
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub zWillExpand_Callback(expanding as Boolean)
+		  If SuppressDuplicateEvents Then
+		    Dim currentMS As Integer = ticks / 6 // 10ths of a second
+		    If zLastWillExpand = CurrentMS Then
+		      Return
+		    End If
+		    zLastWillExpand = currentMS
+		  End If
+		  
+		  RaiseEvent WillExpand(expanding)
+		End Sub
+	#tag EndMethod
+
+
+	#tag Hook, Flags = &h0
+		Event DirectoryChanged(f as FolderItem)
+	#tag EndHook
 
 	#tag Hook, Flags = &h0
 		Event ItemsSelected(items() as FolderItem)
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event SelectionChanged()
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event ShouldEnableItem(f as FolderItem) As Boolean
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event UserEnteredFilename(filename as string, confirmed as Boolean) As Boolean
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event ValidateItem(f as FolderItem) As Boolean
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
+		Event WillExpand(expanding as Boolean)
 	#tag EndHook
 
 
@@ -308,6 +552,29 @@ Protected Class NSSavePanelGTO
 		#tag Getter
 			Get
 			  #If TargetMacOS
+			    // @property(copy) NSURL *directoryURL;
+			    Declare Function getDirectoryURL Lib "Foundation" Selector "directoryURL" (obj As ptr) As Ptr
+			    
+			    Return NSURL2Folderitem(getDirectoryURL(mPtr))
+			  #endif
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  #If TargetMacOS
+			    Declare Sub setDirectoryURL Lib "Foundation" Selector "setDirectoryURL:" (obj As ptr, value As Ptr)
+			    
+			    setDirectoryURL(mPtr, Folderitem2NSURL(value))
+			  #endif
+			End Set
+		#tag EndSetter
+		Directory As FolderItem
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  #If TargetMacOS
 			    // @property(getter=isExtensionHidden) BOOL extensionHidden;
 			    Declare Function isExtensionHidden Lib "Foundation" Selector "isExtensionHidden" (obj As ptr) As Boolean
 			    Return isExtensionHidden(mPtr)
@@ -372,6 +639,14 @@ Protected Class NSSavePanelGTO
 		Private mClassName As String
 	#tag EndProperty
 
+	#tag Property, Flags = &h21
+		Private Shared mDelegateCache As Dictionary
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mDelegateObj As ObjC.ObjCClass
+	#tag EndProperty
+
 	#tag Property, Flags = &h1
 		Protected mPtr As Ptr
 	#tag EndProperty
@@ -417,6 +692,26 @@ Protected Class NSSavePanelGTO
 			End Set
 		#tag EndSetter
 		PromptText As String
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  #If TargetMacOS
+			    // @property(nullable, readonly, copy) NSURL *URL;
+			    Declare Function getURL Lib "Foundation" Selector "URL" (obj As ptr) As Ptr
+			    
+			    Dim url As ptr = getURL(mPtr)
+			    
+			    If url = Nil Then
+			      Return Nil
+			    End If
+			    
+			    Return NSURL2Folderitem(url)
+			  #endif
+			End Get
+		#tag EndGetter
+		SelectedFile As FolderItem
 	#tag EndComputedProperty
 
 	#tag ComputedProperty, Flags = &h0
@@ -485,6 +780,10 @@ Protected Class NSSavePanelGTO
 		SuggestedFileName As String
 	#tag EndComputedProperty
 
+	#tag Property, Flags = &h0
+		SuppressDuplicateEvents As Boolean
+	#tag EndProperty
+
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
@@ -528,6 +827,34 @@ Protected Class NSSavePanelGTO
 		#tag EndSetter
 		TreatsPackagesAsFolders As Boolean
 	#tag EndComputedProperty
+
+	#tag Property, Flags = &h21
+		Private zLastDirectoryChange As Pair
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private zLastEnableURL As Pair
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private zLastSelectedItems() As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private zLastSelectionChanged As Integer
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private zLastUserEnteredFilename As Pair
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private zLastValidateURLError As Pair
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private zLastWillExpand As Integer
+	#tag EndProperty
 
 
 	#tag ViewBehavior
@@ -669,6 +996,14 @@ Protected Class NSSavePanelGTO
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="AllowsOtherFileTypes"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="SuppressDuplicateEvents"
 			Visible=false
 			Group="Behavior"
 			InitialValue=""
