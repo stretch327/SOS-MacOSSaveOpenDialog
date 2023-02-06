@@ -146,20 +146,24 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h1
 		Protected Shared Function Folderitem2NSURL(f as FolderItem) As ptr
-		  // + (instancetype)URLWithString:(NSString *)URLString;
-		  Declare Function URLWithString_ Lib "Foundation" Selector "URLWithString:" (cls As ptr, URLString As CFStringRef) As Ptr
-		  Declare Function NSClassFromString Lib "Foundation" (name As cfstringref) As ptr
-		  
-		  Return URLWithString_(NSClassFromString("NSURL"), f.URLPath)
+		  #If TargetMacOS
+		    // + (instancetype)URLWithString:(NSString *)URLString;
+		    Declare Function URLWithString_ Lib "Foundation" Selector "URLWithString:" (cls As ptr, URLString As CFStringRef) As Ptr
+		    Declare Function NSClassFromString Lib "Foundation" (name As cfstringref) As ptr
+		    
+		    Return URLWithString_(NSClassFromString("NSURL"), f.URLPath)
+		  #endif
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Shared Function NSURL2Folderitem(nsurl as ptr) As FolderItem
-		  Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
-		  Dim f As New FolderItem(getAbsoluteString(nsurl), FolderItem.PathModes.URL)
-		  
-		  return f
+		  #If TargetMacOS
+		    Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
+		    Dim f As New FolderItem(getAbsoluteString(nsurl), FolderItem.PathModes.URL)
+		    
+		    Return f
+		  #endif
 		End Function
 	#tag EndMethod
 
@@ -239,10 +243,12 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h0
 		Sub ValidateVisibleColumns()
-		  // - (void)validateVisibleColumns;
-		  Declare Sub validateVisibleColumns Lib "Foundation" Selector "validateVisibleColumns" (obj As ptr)
-		  
-		  validateVisibleColumns(mPtr)
+		  #If TargetMacOS
+		    // - (void)validateVisibleColumns;
+		    Declare Sub validateVisibleColumns Lib "Foundation" Selector "validateVisibleColumns" (obj As ptr)
+		    
+		    validateVisibleColumns(mPtr)
+		  #endif
 		End Sub
 	#tag EndMethod
 
@@ -302,8 +308,6 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h21
 		Private Shared Function zShouldEnableURL(obj as ptr, sel as ptr, sender as ptr, url as ptr) As Boolean
-		  
-		  
 		  #If TargetMacOS
 		    // get the matching object
 		    Dim panel As NSSavePanelGTO = mDelegateCache.Lookup(sender, Nil)
@@ -553,17 +557,21 @@ Protected Class NSSavePanelGTO
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
-			  // @property(copy) NSURL *directoryURL;
-			  Declare Function getDirectoryURL Lib "Foundation" Selector "directoryURL" (obj As ptr) As Ptr
-			  
-			  return NSURL2Folderitem(getDirectoryURL(mPtr))
+			  #If TargetMacOS
+			    // @property(copy) NSURL *directoryURL;
+			    Declare Function getDirectoryURL Lib "Foundation" Selector "directoryURL" (obj As ptr) As Ptr
+			    
+			    Return NSURL2Folderitem(getDirectoryURL(mPtr))
+			  #endif
 			End Get
 		#tag EndGetter
 		#tag Setter
 			Set
-			  Declare Sub setDirectoryURL Lib "Foundation" Selector "setDirectoryURL:" (obj As ptr, value As Ptr)
-			  
-			  setDirectoryURL(mPtr, Folderitem2NSURL(value))
+			  #If TargetMacOS
+			    Declare Sub setDirectoryURL Lib "Foundation" Selector "setDirectoryURL:" (obj As ptr, value As Ptr)
+			    
+			    setDirectoryURL(mPtr, Folderitem2NSURL(value))
+			  #endif
 			End Set
 		#tag EndSetter
 		Directory As FolderItem
@@ -695,16 +703,18 @@ Protected Class NSSavePanelGTO
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter
 			Get
-			  // @property(nullable, readonly, copy) NSURL *URL;
-			  Declare Function getURL Lib "Foundation" Selector "URL" (obj As ptr) As Ptr
-			  
-			  Dim url As ptr = getURL(mPtr)
-			  
-			  If url = Nil Then
-			    Return Nil
-			  End If
-			  
-			  return NSURL2Folderitem(url)
+			  #If TargetMacOS
+			    // @property(nullable, readonly, copy) NSURL *URL;
+			    Declare Function getURL Lib "Foundation" Selector "URL" (obj As ptr) As Ptr
+			    
+			    Dim url As ptr = getURL(mPtr)
+			    
+			    If url = Nil Then
+			      Return Nil
+			    End If
+			    
+			    Return NSURL2Folderitem(url)
+			  #endif
 			End Get
 		#tag EndGetter
 		SelectedFile As FolderItem
