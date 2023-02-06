@@ -360,18 +360,9 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h21
 		Private Function zUserEnteredFilename_Callback(filename as CFStringRef, confirmed as Boolean) As CFStringRef
-		  Dim s As String = filename
-		  If SuppressDuplicateEvents And zLastUserEnteredFilename.Left = s Then
-		    Return zLastUserEnteredFilename.Right
-		  End If
-		  
-		  
 		  If UserEnteredFilename(filename, confirmed) Then
-		    zLastUserEnteredFilename = filename : Nil
 		    Return Nil
 		  End If
-		  
-		  zLastUserEnteredFilename = filename : filename
 		  
 		  Return filename
 		  
