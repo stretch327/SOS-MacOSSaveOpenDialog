@@ -381,11 +381,11 @@ End
 	#tag Method, Flags = &h21
 		Private Function NSSavePanel_ValidateItem(obj as NSSavePanelGTO, f as FolderItem) As Boolean
 		  // Fires after the user has pressed Save/Open
-		  // Returning an exception will cause the dialog to stay open
+		  // Returning an True will cause the dialog to stay open
 		  
 		  AddEvent "ValidateItem: " + f.NativePath
 		  
-		  return True
+		  return False
 		End Function
 	#tag EndMethod
 
