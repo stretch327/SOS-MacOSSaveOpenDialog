@@ -52,10 +52,10 @@ Begin DesktopWindow EventLog
       InitialValue    =   ""
       Italic          =   False
       Left            =   0
-      LockBottom      =   False
+      LockBottom      =   True
       LockedInPosition=   False
       LockLeft        =   True
-      LockRight       =   False
+      LockRight       =   True
       LockTop         =   True
       RequiresSelection=   False
       RowSelectionType=   0
@@ -69,6 +69,7 @@ Begin DesktopWindow EventLog
       Underline       =   False
       Visible         =   True
       Width           =   600
+      _ScrollOffset   =   0
       _ScrollWidth    =   -1
    End
 End
