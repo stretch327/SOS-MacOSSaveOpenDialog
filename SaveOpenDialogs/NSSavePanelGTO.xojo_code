@@ -191,12 +191,6 @@ Protected Class NSSavePanelGTO
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h21
-		Private Sub SelectionChanged()
-		  
-		End Sub
-	#tag EndMethod
-
 	#tag Method, Flags = &h0
 		Sub Show()
 		  #If TargetMacOS
