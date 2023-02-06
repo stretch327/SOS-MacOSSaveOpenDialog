@@ -309,6 +309,12 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h21
 		Private Sub zPanelSelectionDidChange_Callback()
+		  Dim ct As Double = Ticks
+		  If ct - zLastSelectionChanged < 7 Then
+		    Return
+		  End If
+		  
+		  zLastSelectionChanged = ct
 		  
 		  RaiseEvent SelectionChanged
 		End Sub
