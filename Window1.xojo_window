@@ -268,7 +268,7 @@ End
 		  // This delegate is required
 		  obj.Callback_ItemsSelected = AddressOf NSSavePanel_ItemsSelected
 		  
-		  // the rest of these only need to be defined if you want to be notified and 
+		  // the rest of these only need to be defined if you want to be notified and/or 
 		  // make changes.
 		  
 		  obj.Callback_DirectoryChanged = AddressOf NSSavePanel_DirectoryChanged
@@ -277,7 +277,6 @@ End
 		  obj.Callback_UserEnteredFilename = AddressOf NSSavePanel_UserEnteredFilename
 		  obj.Callback_ValidateItem = AddressOf NSSavePanel_ValidateItem
 		  obj.Callback_WillExpand = AddressOf NSSavePanel_WillExpand
-		  
 		  
 		End Sub
 	#tag EndMethod
