@@ -63,28 +63,6 @@ Protected Class NSSavePanelGTO
 		    
 		    mClassName = superclass
 		    
-		    // create a delegate class so that we can satisfy the NSOpenSavePanelDelegate protocol
-		    mDelegateObj = New ObjC.ObjCClass("panelDelegate" + Str(Ticks), "NSObject")
-		    mDelegateObj.AddProtocol("NSOpenSavePanelDelegate")
-		    
-		    mDelegateObj.AddMethod( "panel:userEnteredFilename:confirmed:", AddressOf zUserEnteredFilename, "@@:@@B")
-		    mDelegateObj.AddMethod( "panelSelectionDidChange:", AddressOf zPanelSelectionDidChange, "v@:@")
-		    mDelegateObj.AddMethod( "panel:didChangeToDirectoryURL:", AddressOf zDidChangeToDirectoryURL, "v@:@@")
-		    mDelegateObj.AddMethod( "panel:willExpand:", AddressOf zWillExpand, "v@:@B")
-		    mDelegateObj.AddMethod( "panel:shouldEnableURL:", AddressOf zShouldEnableURL, "B@:@@")
-		    mDelegateObj.AddMethod( "panel:validateURL:error:", AddressOf zValidateURLError, "B@:@@@")
-		    
-		    mDelegateObj.Register
-		    
-		    Declare Sub setDelegate Lib "Foundation" Selector "setDelegate:" (obj As ptr, value As Ptr)
-		    setDelegate(mPtr, mDelegateObj.Handle)
-		    
-		    If mDelegateCache = Nil Then
-		      mDelegateCache = New Dictionary
-		    End If
-		    
-		    mDelegateCache.Value(mPtr) = Self
-		    
 		    // initialize the duplicate event info
 		    zLastDirectoryChange = "":0
 		    zLastEnableURL = Nil:Nil
@@ -107,6 +85,10 @@ Protected Class NSSavePanelGTO
 		  
 		End Sub
 	#tag EndMethod
+
+	#tag DelegateDeclaration, Flags = &h0
+		Delegate Sub DirectoryChangedDelegate(sender as NSSavePanelGTO, f as FolderItem)
+	#tag EndDelegateDeclaration
 
 	#tag Method, Flags = &h0
 		Sub Filter(assigns value() as FileType)
@@ -170,6 +152,10 @@ Protected Class NSSavePanelGTO
 		End Function
 	#tag EndMethod
 
+	#tag DelegateDeclaration, Flags = &h0
+		Delegate Sub ItemsSelectedDelegate(sender as NSSavePanelGTO, items() as FolderItem)
+	#tag EndDelegateDeclaration
+
 	#tag Method, Flags = &h1
 		Protected Shared Function NSURL2Folderitem(nsurl as ptr) As FolderItem
 		  #If TargetMacOS
@@ -184,30 +170,98 @@ Protected Class NSSavePanelGTO
 	#tag Method, Flags = &h21
 		Private Sub Response(value as integer)
 		  #If TargetMacOS
+		    If Callback_ItemsSelected = Nil Then
+		      Return
+		    End If
+		    
 		    Dim items() As FolderItem
 		    If value = 0 Then
-		      RaiseEvent ItemsSelected(items)
+		      Callback_ItemsSelected.Invoke(Self, items)
+		      Return
 		    End If
 		    
 		    Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
 		    
 		    If Self IsA NSOpenPanelGTO And NSOpenPanelGTO(Self).AllowMultipleSelection Then
-		      RaiseEvent ItemsSelected(NSOpenPanelGTO(self).SelectedFiles)
+		      Callback_ItemsSelected.Invoke(Self, NSOpenPanelGTO(Self).SelectedFiles)
 		      Return
 		    End If
 		    
 		    Dim f As FolderItem = SelectedFile
 		    If f<>Nil Then
-		      RaiseEvent ItemsSelected(Array(f))
+		      Callback_ItemsSelected.Invoke(Self, Array(f))
 		    End If
 		    
 		  #endif
 		End Sub
 	#tag EndMethod
 
+	#tag DelegateDeclaration, Flags = &h0
+		Delegate Sub SelectionChangedDelegate(sender as NSSavePanelGTO)
+	#tag EndDelegateDeclaration
+
+	#tag Method, Flags = &h21
+		Private Sub SetupDelegate()
+		  // check to make sure the user has defined the delegate for getting
+		  If Callback_ItemsSelected = Nil Then
+		    Raise New UnsupportedOperationException("You must assign a method to the ItemsSelected callback delegate")
+		  End If
+		  
+		  // create a delegate class so that we can satisfy the NSOpenSavePanelDelegate protocol
+		  mDelegateObj = New ObjC.ObjCClass("panelDelegate" + Str(Ticks), "NSObject")
+		  mDelegateObj.AddProtocol("NSOpenSavePanelDelegate")
+		  
+		  If Callback_UserEnteredFilename <> Nil Then
+		    mDelegateObj.AddMethod( "panel:userEnteredFilename:confirmed:", AddressOf zUserEnteredFilename, "@@:@@B")
+		  End If
+		  
+		  If Callback_SelectionChanged <> Nil Then
+		    mDelegateObj.AddMethod( "panelSelectionDidChange:", AddressOf zPanelSelectionDidChange, "v@:@")
+		  End If
+		  
+		  If Callback_DirectoryChanged <> Nil Then
+		    mDelegateObj.AddMethod( "panel:didChangeToDirectoryURL:", AddressOf zDidChangeToDirectoryURL, "v@:@@")
+		  End If
+		  
+		  If Callback_WillExpand <> Nil Then
+		    mDelegateObj.AddMethod( "panel:willExpand:", AddressOf zWillExpand, "v@:@B")
+		  End If
+		  
+		  If Callback_ShouldEnableItem <> Nil Then
+		    mDelegateObj.AddMethod( "panel:shouldEnableURL:", AddressOf zShouldEnableURL, "B@:@@")
+		  End If
+		  
+		  If Callback_ValidateItem <> Nil Then
+		    mDelegateObj.AddMethod( "panel:validateURL:error:", AddressOf zValidateURLError, "B@:@@@")
+		  End If
+		  
+		  // if no methods were added, don't add the delegate
+		  If mDelegateObj.HasMethods = False Then
+		    Return
+		  End If
+		  
+		  mDelegateObj.Register
+		  
+		  Declare Sub setDelegate Lib "Foundation" Selector "setDelegate:" (obj As ptr, value As Ptr)
+		  setDelegate(mPtr, mDelegateObj.Handle)
+		  
+		  If mDelegateCache = Nil Then
+		    mDelegateCache = New Dictionary
+		  End If
+		  
+		  mDelegateCache.Value(mPtr) = Self
+		End Sub
+	#tag EndMethod
+
+	#tag DelegateDeclaration, Flags = &h0
+		Delegate Function ShouldEnableItemDelegate(sender as NSSavePanelGTO, f as FolderItem) As Boolean
+	#tag EndDelegateDeclaration
+
 	#tag Method, Flags = &h0
 		Sub Show()
 		  #If TargetMacOS
+		    SetupDelegate
+		    
 		    Dim bl As New ObjCBlock(AddressOf Response)
 		    
 		    Declare Sub beginWithCompletionHandler Lib "Foundation" Selector "beginWithCompletionHandler:" ( obj As ptr, blk As ptr )
@@ -219,35 +273,38 @@ Protected Class NSSavePanelGTO
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub ShowWithin(parent as Object)
+		Sub ShowWithin(parent as DesktopWindow)
 		  #If TargetMacOS
-		    Dim handle As Integer
-		    #If XojoVersion >= 2021.03
-		      Dim h As OSHandle
-		      If parent IsA DesktopWindow Then
-		        h = DesktopWindow(parent).Handle
-		      ElseIf parent IsA Window Then
-		        h = Window(parent).Handle
-		      End If
-		      handle = h
-		    #Else
-		      If parent IsA Window Then
-		        handle = Window(parent).Handle
-		      End If
-		    #EndIf
-		    
-		    If handle = 0 Then
-		      Raise New UnsupportedOperationException("This class only works with Windows and DesktopWindows")
-		      Return
-		    End If
+		    SetupDelegate
 		    
 		    Dim bl As New ObjCBlock(AddressOf Response)
-		    Declare Sub beginSheetModalForWindow_completionHandler Lib "Foundation" Selector "beginSheetModalForWindow:completionHandler:" ( obj As ptr , Window As Integer, callback As ptr )
-		    beginSheetModalForWindow_completionHandler(mPtr, Handle, bl.Handle)
+		    Declare Sub beginSheetModalForWindow_completionHandler Lib "Foundation" Selector "beginSheetModalForWindow:completionHandler:" ( obj As ptr , Window As Ptr, callback As ptr )
+		    beginSheetModalForWindow_completionHandler(mPtr, parent.Handle, bl.Handle)
 		  #EndIf
 		  
 		End Sub
 	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub ShowWithin(parent as Window)
+		  #If TargetMacOS
+		    SetupDelegate
+		    
+		    Dim bl As New ObjCBlock(AddressOf Response)
+		    Declare Sub beginSheetModalForWindow_completionHandler Lib "Foundation" Selector "beginSheetModalForWindow:completionHandler:" ( obj As ptr , Window As Integer, callback As ptr )
+		    beginSheetModalForWindow_completionHandler(mPtr, parent.Handle, bl.Handle)
+		  #EndIf
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag DelegateDeclaration, Flags = &h0
+		Delegate Function UserEnteredFilenameDelegate(sender as NSSavePanelGTO, filename as string, confirmed as Boolean) As Boolean
+	#tag EndDelegateDeclaration
+
+	#tag DelegateDeclaration, Flags = &h0
+		Delegate Function ValidateItemDelegate(sender as NSSavePanelGTO, f as FolderItem) As Boolean
+	#tag EndDelegateDeclaration
 
 	#tag Method, Flags = &h0
 		Sub ValidateVisibleColumns()
@@ -259,6 +316,10 @@ Protected Class NSSavePanelGTO
 		  #endif
 		End Sub
 	#tag EndMethod
+
+	#tag DelegateDeclaration, Flags = &h0
+		Delegate Sub WillExpandDelegate(sender as NSSavePanelGTO, expanding as Boolean)
+	#tag EndDelegateDeclaration
 
 	#tag Method, Flags = &h21
 		Private Shared Sub zDidChangeToDirectoryURL(obj as ptr, sel as ptr, sender as ptr, url as ptr)
@@ -277,6 +338,10 @@ Protected Class NSSavePanelGTO
 	#tag Method, Flags = &h21
 		Private Sub zDidChangeToDirectoryURL_Callback(url as ptr)
 		  #If TargetMacOS
+		    If Callback_DirectoryChanged = Nil Then
+		      Return
+		    End If
+		    
 		    Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
 		    Dim s As String = getAbsoluteString(url)
 		    
@@ -288,7 +353,7 @@ Protected Class NSSavePanelGTO
 		    
 		    zLastDirectoryChange = s : ticks
 		    
-		    RaiseEvent DirectoryChanged(f)
+		    Callback_DirectoryChanged.Invoke(self, f)
 		  #EndIf
 		End Sub
 	#tag EndMethod
@@ -309,6 +374,10 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h21
 		Private Sub zPanelSelectionDidChange_Callback()
+		  If Callback_SelectionChanged = Nil Then
+		    Return
+		  End If
+		  
 		  Dim ct As Double = Ticks
 		  If ct - zLastSelectionChanged < 7 Then
 		    Return
@@ -316,7 +385,7 @@ Protected Class NSSavePanelGTO
 		  
 		  zLastSelectionChanged = ct
 		  
-		  RaiseEvent SelectionChanged
+		  Callback_SelectionChanged.Invoke(self)
 		End Sub
 	#tag EndMethod
 
@@ -336,13 +405,16 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h21
 		Private Function zShouldEnableURL_Callback(url as ptr) As Boolean
+		  If Callback_ShouldEnableItem = Nil Then
+		    Return True
+		  End If
 		  
 		  Dim f As FolderItem = NSURL2Folderitem(url)
 		  If SuppressDuplicateEvents And f.URLPath = zLastEnableURL.Left Then
 		    Return zLastEnableURL.Right
 		  End If
 		  
-		  Dim rv As Boolean = ShouldEnableItem(f)
+		  Dim rv As Boolean = Callback_ShouldEnableItem.Invoke(self, f)
 		  
 		  zLastEnableURL = f.URLPath : rv
 		  
@@ -366,11 +438,15 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h21
 		Private Function zUserEnteredFilename_Callback(filename as CFStringRef, confirmed as Boolean) As CFStringRef
-		  If UserEnteredFilename(filename, confirmed) Then
-		    Return Nil
+		  If Callback_UserEnteredFilename = Nil Then
+		    Return filename
 		  End If
 		  
-		  Return filename
+		  If Callback_UserEnteredFilename.Invoke(Self, filename, confirmed) Then
+		    Return filename
+		  End If
+		  
+		  Return Nil
 		  
 		End Function
 	#tag EndMethod
@@ -391,9 +467,13 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h21
 		Private Function zValidateURLError_Callback(url as ptr, error as ptr) As Boolean
+		  If Callback_ValidateItem = Nil Then
+		    Return True
+		  End If
+		  
 		  Dim f As FolderItem = NSURL2Folderitem(url)
 		  
-		  Return Not ValidateItem(f)
+		  Return Callback_ValidateItem.Invoke(Self, f)
 		  
 		End Function
 	#tag EndMethod
@@ -414,46 +494,22 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h21
 		Private Sub zWillExpand_Callback(expanding as Boolean)
+		  If Callback_WillExpand = Nil Then
+		    Return
+		  End If
+		  
 		  If SuppressDuplicateEvents Then
-		    Dim currentMS As Integer = ticks / 6 // 10ths of a second
+		    Dim currentMS As Integer = Ticks / 6 // 10ths of a second
 		    If zLastWillExpand = CurrentMS Then
 		      Return
 		    End If
 		    zLastWillExpand = currentMS
 		  End If
 		  
-		  RaiseEvent WillExpand(expanding)
+		  Callback_WillExpand.Invoke(Self, expanding)
+		  
 		End Sub
 	#tag EndMethod
-
-
-	#tag Hook, Flags = &h0
-		Event DirectoryChanged(f as FolderItem)
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event ItemsSelected(items() as FolderItem)
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event SelectionChanged()
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event ShouldEnableItem(f as FolderItem) As Boolean
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event UserEnteredFilename(filename as string, confirmed as Boolean) As Boolean
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event ValidateItem(f as FolderItem) As Boolean
-	#tag EndHook
-
-	#tag Hook, Flags = &h0
-		Event WillExpand(expanding as Boolean)
-	#tag EndHook
 
 
 	#tag ComputedProperty, Flags = &h0
@@ -499,6 +555,34 @@ Protected Class NSSavePanelGTO
 		#tag EndSetter
 		AllowsOtherFileTypes As Boolean
 	#tag EndComputedProperty
+
+	#tag Property, Flags = &h0
+		Callback_DirectoryChanged As DirectoryChangedDelegate
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		Callback_ItemsSelected As ItemsSelectedDelegate
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		Callback_SelectionChanged As SelectionChangedDelegate
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		Callback_ShouldEnableItem As ShouldEnableItemDelegate
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		Callback_UserEnteredFilename As UserEnteredFilenameDelegate
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		Callback_ValidateItem As ValidateItemDelegate
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		Callback_WillExpand As WillExpandDelegate
+	#tag EndProperty
 
 	#tag ComputedProperty, Flags = &h0
 		#tag Getter

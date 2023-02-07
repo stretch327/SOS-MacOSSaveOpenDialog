@@ -264,6 +264,24 @@ End
 
 #tag WindowCode
 	#tag Method, Flags = &h21
+		Private Sub AddDelegates(obj as NSSavePanelGTO)
+		  // This delegate is required
+		  obj.Callback_ItemsSelected = AddressOf NSSavePanel_ItemsSelected
+		  
+		  // the rest of these only need to be defined if you want to be notified and/or 
+		  // make changes.
+		  
+		  obj.Callback_DirectoryChanged = AddressOf NSSavePanel_DirectoryChanged
+		  obj.Callback_SelectionChanged = AddressOf NSSavePanel_SelectionChanged
+		  obj.Callback_ShouldEnableItem = AddressOf NSSavePanel_ShouldEnableItem
+		  obj.Callback_UserEnteredFilename = AddressOf NSSavePanel_UserEnteredFilename
+		  obj.Callback_ValidateItem = AddressOf NSSavePanel_ValidateItem
+		  obj.Callback_WillExpand = AddressOf NSSavePanel_WillExpand
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Sub AddEvent(txt as string)
 		  If mEventLog = Nil Then
 		    mEventLog = New EventLog
@@ -284,20 +302,6 @@ End
 		    mEventLog.Show
 		    EventLog.AddEvent(txt)
 		  End Try
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h21
-		Private Sub AddHandlers(obj as NSSavePanelGTO)
-		  AddHandler obj.DirectoryChanged, AddressOf NSSavePanel_DirectoryChanged
-		  AddHandler obj.SelectionChanged, AddressOf NSSavePanel_SelectionChanged
-		  AddHandler obj.ShouldEnableItem, AddressOf NSSavePanel_ShouldEnableItem
-		  AddHandler obj.UserEnteredFilename, AddressOf NSSavePanel_UserEnteredFilename
-		  AddHandler obj.ValidateItem, AddressOf NSSavePanel_ValidateItem
-		  AddHandler obj.WillExpand, AddressOf NSSavePanel_WillExpand
-		  
-		  AddHandler obj.ItemsSelected, AddressOf NSSavePanel_ItemsSelected
-		  
 		End Sub
 	#tag EndMethod
 
@@ -334,7 +338,6 @@ End
 
 	#tag Method, Flags = &h21
 		Private Sub NSSavePanel_ItemsSelected(obj as NSSavePanelGTO, items() as FolderItem)
-		  RemoveHandler obj.ItemsSelected, AddressOf NSSavePanel_ItemsSelected
 		  
 		  UpdateFileList(items)
 		  
@@ -361,7 +364,7 @@ End
 		    If f <> Nil Then
 		      path = f.NativePath
 		    End If
-		    AddEvent "SelectionChanged: " + path + "  " + Str(Ticks/6,"0")
+		    AddEvent "SelectionChanged: " + path 
 		  End If
 		  
 		  
@@ -389,19 +392,21 @@ End
 	#tag Method, Flags = &h21
 		Private Function NSSavePanel_UserEnteredFilename(obj as NSSavePanelGTO, filename as string, confirmed as boolean) As Boolean
 		  // Tells the delegate that the user confirmed a filename choice by clicking Save/Open in a Save panel.
-		  // Return True to prevent the dialog from closing
+		  // Return False to prevent the dialog from closing
 		  AddEvent "UserEnteredFilename: " + filename + " : " + If(confirmed, "True", "False")
+		  
+		  Return True
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Function NSSavePanel_ValidateItem(obj as NSSavePanelGTO, f as FolderItem) As Boolean
 		  // Fires after the user has pressed Save/Open
-		  // Returning an True will cause the dialog to stay open
+		  // Returning an False will cause the dialog to stay open
 		  
 		  AddEvent "ValidateItem: " + f.NativePath
 		  
-		  return False
+		  Return True
 		End Function
 	#tag EndMethod
 
@@ -454,7 +459,8 @@ End
 		  // Custom save panel
 		  mDialog = New NSSavePanelGTO
 		  
-		  addhandlers(mDialog)
+		  // Delegates MUST be defined before the dialog is shown
+		  AddDelegates(mDialog)
 		  
 		  SaveAccessories1.SetFileTypes(types)
 		  SaveAccessories1.Reset
@@ -472,7 +478,7 @@ End
 		  mDialog.ShowsHiddenFiles = True
 		  mDialog.ShowsTagField = True
 		  mDialog.Title = "Alphabetical"
-		  mDialog.TreatsPackagesAsFolders = True
+		  
 		  mDialog.ShowWithin(Self)
 		  
 		  
@@ -487,7 +493,7 @@ End
 		  mDialog = New NSOpenPanelGTO
 		  Dim dlg As NSOpenPanelGTO = NSOpenPanelGTO(mDialog) // so we don't have to do a bunch of casting
 		  
-		  addhandlers(mDialog)
+		  AddDelegates(mDialog)
 		  
 		  config(dlg)
 		  dlg.PromptText = "Select a picture"
@@ -513,7 +519,7 @@ End
 		  mDialog = New NSOpenPanelGTO
 		  Dim dlg As NSOpenPanelGTO = NSOpenPanelGTO(mDialog) // so we don't have to do a bunch of casting
 		  
-		  addhandlers(dlg)
+		  AddDelegates(dlg)
 		  
 		  config(dlg)
 		  dlg.PromptText = "Select some pictures"
@@ -538,7 +544,7 @@ End
 		  mDialog = New NSOpenPanelGTO
 		  Dim dlg As NSOpenPanelGTO = NSOpenPanelGTO(mDialog) // so we don't have to do a bunch of casting
 		  
-		  addhandlers(dlg)
+		  AddDelegates(dlg)
 		  
 		  config(dlg)
 		  dlg.PromptText = "Select some files and/or folders"

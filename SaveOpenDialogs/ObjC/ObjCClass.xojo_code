@@ -3,6 +3,8 @@ Protected Class ObjCClass
 	#tag Method, Flags = &h0
 		Sub AddMethod(selectorName as string, handle as ptr, signature as string)
 		  #If TargetMacOS
+		    mHasMethods = True
+		    
 		    CheckRegistered
 		    
 		    // SEL NSSelectorFromString(NSString *aSelectorName);
@@ -29,6 +31,8 @@ Protected Class ObjCClass
 	#tag Method, Flags = &h0
 		Sub AddMethodXojoTypes(selectorName as string, handle as ptr, returnType as string, paramArray paramTypes as string)
 		  #If TargetMacOS
+		    mHasMethods = True
+		    
 		    CheckRegistered
 		    
 		    // SEL NSSelectorFromString(NSString *aSelectorName);
@@ -58,6 +62,7 @@ Protected Class ObjCClass
 	#tag Method, Flags = &h0
 		Sub AddProtocol(name as string)
 		  #If TargetMacOS
+		    mHasProtocol = True
 		    CheckRegistered
 		    
 		    Declare Function objc_getProtocol Lib "Foundation"(name As CString) As Ptr
@@ -133,6 +138,24 @@ Protected Class ObjCClass
 	#tag EndMethod
 
 
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return mHasMethods
+			End Get
+		#tag EndGetter
+		HasMethods As Boolean
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return mHasProtocol
+			End Get
+		#tag EndGetter
+		HasProtocol As Boolean
+	#tag EndComputedProperty
+
 	#tag Property, Flags = &h21
 		Private mAddedSelectors() As String
 	#tag EndProperty
@@ -143,6 +166,14 @@ Protected Class ObjCClass
 
 	#tag Property, Flags = &h21
 		Private mClass As ptr
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mHasMethods As Boolean
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mHasProtocol As Boolean
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
