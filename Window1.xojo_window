@@ -343,6 +343,8 @@ End
 		  
 		  label1.Text = "Option 1: " + SaveAccessories1.Option1Value.ToString + _
 		  " Option 2: " + SaveAccessories1.Option2Value.ToString
+		  
+		  mDialog = Nil
 		End Sub
 	#tag EndMethod
 

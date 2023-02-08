@@ -74,11 +74,11 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h0
 		Sub Destructor()
-		  #If TargetMacOS
-		    If mDelegateCache.HasKey(mPtr) Then
-		      mDelegateCache.Remove(mPtr)
-		    End If
-		  #EndIf
+		  ' #If TargetMacOS
+		  ' If mDelegateCache.HasKey(mPtr) Then
+		  ' mDelegateCache.Remove(mPtr)
+		  ' End If
+		  ' #EndIf
 		  
 		End Sub
 	#tag EndMethod
@@ -167,6 +167,10 @@ Protected Class NSSavePanelGTO
 	#tag Method, Flags = &h21
 		Private Sub Response(value as integer)
 		  #If TargetMacOS
+		    If mDelegateCache.HasKey(mPtr) Then
+		      mDelegateCache.Remove(mPtr)
+		    End If
+		    
 		    If Callback_ItemsSelected = Nil Then
 		      Return
 		    End If
