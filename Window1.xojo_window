@@ -196,37 +196,6 @@ Begin DesktopWindow Window1
       _ScrollOffset   =   0
       _ScrollWidth    =   -1
    End
-   Begin SaveAccessories SaveAccessories1
-      AllowAutoDeactivate=   True
-      AllowFocus      =   False
-      AllowFocusRing  =   False
-      AllowTabs       =   True
-      Backdrop        =   0
-      BackgroundColor =   &cFFFFFF
-      Composited      =   False
-      Enabled         =   True
-      HasBackgroundColor=   False
-      Height          =   90
-      Index           =   -2147483648
-      InitialParent   =   ""
-      Left            =   0
-      LockBottom      =   True
-      LockedInPosition=   False
-      LockLeft        =   True
-      LockRight       =   False
-      LockTop         =   False
-      Option1Value    =   False
-      Option2Value    =   False
-      Scope           =   0
-      TabIndex        =   5
-      TabPanelIndex   =   0
-      TabStop         =   True
-      Tooltip         =   ""
-      Top             =   415
-      Transparent     =   True
-      Visible         =   True
-      Width           =   400
-   End
    Begin DesktopLabel Label1
       AllowAutoDeactivate=   True
       Bold            =   False
@@ -263,6 +232,14 @@ End
 #tag EndDesktopWindow
 
 #tag WindowCode
+	#tag Method, Flags = &h21
+		Private Sub AccessoryPanel_FileTypeChanged(obj as SaveAccessories, type as FileType)
+		  // set the filter on the dialog to the selected type
+		  // this will automagically change the extension of the file
+		  mDialog.Filter = Array( type )
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21
 		Private Sub AddDelegates(obj as NSSavePanelGTO)
 		  // This delegate is required
@@ -341,8 +318,12 @@ End
 		  
 		  UpdateFileList(items)
 		  
-		  label1.Text = "Option 1: " + SaveAccessories1.Option1Value.ToString + _
-		  " Option 2: " + SaveAccessories1.Option2Value.ToString
+		  label1.Text = "Option 1: " + AccessoryPanel.Option1Value.ToString + _
+		  " Option 2: " + AccessoryPanel.Option2Value.ToString
+		  
+		  RemoveHandler AccessoryPanel.FileTypeChanged, AddressOf AccessoryPanel_FileTypeChanged
+		  AccessoryPanel.Close
+		  AccessoryPanel = Nil
 		  
 		  mDialog = Nil
 		End Sub
@@ -443,6 +424,10 @@ End
 
 
 	#tag Property, Flags = &h21
+		Private AccessoryPanel As SaveAccessories
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private mDialog As NSSavePanelGTO
 	#tag EndProperty
 
@@ -456,6 +441,12 @@ End
 #tag Events Button1
 	#tag Event
 		Sub Pressed()
+		  AccessoryPanel = New SaveAccessories
+		  AccessoryPanel.LockLeft = False
+		  AccessoryPanel.LockRight = True
+		  AccessoryPanel.EmbedWithin Self, Self.Width + 20, 0, AccessoryPanel.Width, AccessoryPanel.Height
+		  AddHandler AccessoryPanel.FileTypeChanged, AddressOf AccessoryPanel_FileTypeChanged
+		  
 		  Dim types() As FileType = Array(FileTypeGroup2.Text, FileTypeGroup2.Rtf, FileTypeGroup2.Pdf)
 		  
 		  // Custom save panel
@@ -464,9 +455,9 @@ End
 		  // Delegates MUST be defined before the dialog is shown
 		  AddDelegates(mDialog)
 		  
-		  SaveAccessories1.SetFileTypes(types)
-		  SaveAccessories1.Reset
-		  mDialog.AccessoryView = SaveAccessories1
+		  AccessoryPanel.SetFileTypes(types)
+		  AccessoryPanel.Reset
+		  mDialog.AccessoryView = AccessoryPanel
 		  mDialog.SuppressDuplicateEvents = True
 		  mDialog.ActionButtonCaption = "Save"
 		  mDialog.CanCreateDirectories = False
@@ -490,6 +481,11 @@ End
 #tag Events Button2
 	#tag Event
 		Sub Pressed()
+		  AccessoryPanel = New SaveAccessories
+		  AccessoryPanel.LockLeft = False
+		  AccessoryPanel.LockRight = True
+		  AccessoryPanel.EmbedWithin Self, Self.Width + 20, 0, AccessoryPanel.Width, AccessoryPanel.Height
+		  AddHandler AccessoryPanel.FileTypeChanged, AddressOf AccessoryPanel_FileTypeChanged
 		  
 		  // Custom open panel
 		  mDialog = New NSOpenPanelGTO
@@ -500,9 +496,8 @@ End
 		  config(dlg)
 		  dlg.PromptText = "Select a picture"
 		  dlg.ActionButtonCaption = "Select"
-		  SaveAccessories1.Reset
 		  
-		  dlg.AccessoryView = SaveAccessories1
+		  dlg.AccessoryView = AccessoryPanel
 		  dlg.CanChooseDirectories = False
 		  dlg.CanChooseFiles = True
 		  dlg.AllowMultipleSelection = False
@@ -516,6 +511,11 @@ End
 #tag Events Button3
 	#tag Event
 		Sub Pressed()
+		  AccessoryPanel = New SaveAccessories
+		  AccessoryPanel.LockLeft = False
+		  AccessoryPanel.LockRight = True
+		  AccessoryPanel.EmbedWithin Self, Self.Width + 20, 0, AccessoryPanel.Width, AccessoryPanel.Height
+		  AddHandler AccessoryPanel.FileTypeChanged, AddressOf AccessoryPanel_FileTypeChanged
 		  
 		  // Custom open panel
 		  mDialog = New NSOpenPanelGTO
@@ -526,8 +526,7 @@ End
 		  config(dlg)
 		  dlg.PromptText = "Select some pictures"
 		  dlg.ActionButtonCaption = "Select"
-		  SaveAccessories1.Reset
-		  dlg.AccessoryView = SaveAccessories1
+		  dlg.AccessoryView = AccessoryPanel
 		  dlg.CanChooseDirectories = False
 		  dlg.CanChooseFiles = True
 		  dlg.AllowMultipleSelection = True
@@ -541,6 +540,11 @@ End
 #tag Events Button4
 	#tag Event
 		Sub Pressed()
+		  AccessoryPanel = New SaveAccessories
+		  AccessoryPanel.LockLeft = False
+		  AccessoryPanel.LockRight = True
+		  AccessoryPanel.EmbedWithin Self, Self.Width + 20, 0, AccessoryPanel.Width, AccessoryPanel.Height
+		  AddHandler AccessoryPanel.FileTypeChanged, AddressOf AccessoryPanel_FileTypeChanged
 		  
 		  // Custom open panel
 		  mDialog = New NSOpenPanelGTO
@@ -551,8 +555,7 @@ End
 		  config(dlg)
 		  dlg.PromptText = "Select some files and/or folders"
 		  dlg.ActionButtonCaption = "Select"
-		  SaveAccessories1.Reset
-		  dlg.AccessoryView = SaveAccessories1
+		  dlg.AccessoryView = AccessoryPanel
 		  dlg.CanChooseDirectories = True
 		  dlg.CanChooseFiles = True
 		  dlg.AllowMultipleSelection = True
@@ -562,15 +565,6 @@ End
 		  dlg.ShowWithin(Self)
 		  
 		  
-		End Sub
-	#tag EndEvent
-#tag EndEvents
-#tag Events SaveAccessories1
-	#tag Event
-		Sub FileTypeChanged(type as FileType)
-		  // set the filter on the dialog to the selected type
-		  // this will automagically change the extension of the file
-		  mDialog.Filter = Array(type)
 		End Sub
 	#tag EndEvent
 #tag EndEvents
