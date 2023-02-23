@@ -345,11 +345,6 @@ End
 		  " Option 2: " + SaveAccessories1.Option2Value.ToString
 		  
 		  mDialog = Nil
-		  
-		  // If you intend to perform a load / save method I would recomend using
-		  // Timer.CallLater( 0, AddressOf LoadSaveMethod )
-		  //
-		  // That way you allow the dialog box to close before your loading process starts.
 		End Sub
 	#tag EndMethod
 
