@@ -130,7 +130,7 @@ Protected Class NSSavePanelGTO
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub Filter(assigns value() as String)
+		Attributes( Deprecated = "Filter(FileTypes)" )  Sub Filter(assigns value() as String)
 		  #If TargetMacOS
 		    Declare Function NSClassFromString Lib "Foundation" (name As cfstringref) As ptr
 		    // + (instancetype)arrayWithCapacity:(NSUInteger)numItems;
