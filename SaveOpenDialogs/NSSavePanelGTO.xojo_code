@@ -130,6 +130,29 @@ Protected Class NSSavePanelGTO
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub Filter(assigns value() as String)
+		  #If TargetMacOS
+		    Declare Function NSClassFromString Lib "Foundation" (name As cfstringref) As ptr
+		    // + (instancetype)arrayWithCapacity:(NSUInteger)numItems;
+		    Declare Function arrayWithCapacity_ Lib "Foundation" Selector "arrayWithCapacity:" ( cls As ptr , numItems As Integer ) As Ptr
+		    
+		    Declare Sub addStringObject_ Lib "Foundation" Selector "addObject:" ( obj As ptr , anObject As CFStringRef )
+		    
+		    // @property(copy) NSArray<NSString *> *allowedFileTypes;
+		    Declare Sub setAllowedFileTypes Lib "Foundation" Selector "setAllowedFileTypes:" (obj As ptr, value As Ptr)
+		    
+		    Dim arr As ptr = arrayWithCapacity_(NSClassFromString("NSMutableArray"), 0)
+		    
+		    For i As Integer = 0 To UBound(value)
+		      addStringObject_(arr, value(i))
+		    Next i
+		    
+		    setAllowedFileTypes(mPtr, arr)
+		  #EndIf
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub Filter(paramarray values as FileType)
 		  #If TargetMacOS
 		    filter = values
