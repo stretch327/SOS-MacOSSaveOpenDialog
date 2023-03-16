@@ -194,8 +194,6 @@ Protected Class NSSavePanelGTO
 		      Return
 		    End If
 		    
-		    Declare Function getAbsoluteString Lib "Foundation" Selector "absoluteString" (obj As ptr) As CFStringRef
-		    
 		    If Self IsA NSOpenPanelGTO And NSOpenPanelGTO(Self).AllowMultipleSelection Then
 		      Callback_ItemsSelected.Invoke(Self, NSOpenPanelGTO(Self).SelectedFiles)
 		      Return
