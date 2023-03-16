@@ -106,7 +106,7 @@ Protected Class NSSavePanelGTO
 		    // @property(copy) NSArray<NSString *> *allowedFileTypes;
 		    Declare Sub setAllowedFileTypes Lib "Foundation" Selector "setAllowedFileTypes:" (obj As ptr, value As Ptr)
 		    
-		    Dim arr As ptr = arrayWithCapacity_(NSClassFromString("NSMutableArray"), UBound(value)+1)
+		    Dim arr As ptr = arrayWithCapacity_(NSClassFromString("NSMutableArray"), 0)
 		    Dim UTType As ptr = NSClassFromString("UTType")
 		    For i As Integer = 0 To UBound(value)
 		      If MacOSVersion.MajorVersion <= 10 Then
