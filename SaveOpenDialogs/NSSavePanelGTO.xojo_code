@@ -103,28 +103,18 @@ Protected Class NSSavePanelGTO
 		    Declare Function exportedTypeWithIdentifier_ Lib "Foundation" Selector "exportedTypeWithIdentifier:" ( cls As ptr , identifier As CFStringRef ) As Ptr
 		    // + (UTType *)importedTypeWithIdentifier:(NSString *)identifier;
 		    Declare Function importedTypeWithIdentifier_ Lib "Foundation" Selector "importedTypeWithIdentifier:" (cls As ptr, identifier As CFStringRef) As Ptr
-		    // @property(copy) NSArray<NSString *> *allowedFileTypes;
-		    Declare Sub setAllowedFileTypes Lib "Foundation" Selector "setAllowedFileTypes:" (obj As ptr, value As Ptr)
 		    
 		    Dim arr As ptr = arrayWithCapacity_(NSClassFromString("NSMutableArray"), 0)
 		    Dim UTType As ptr = NSClassFromString("UTType")
 		    For i As Integer = 0 To UBound(value)
-		      If MacOSVersion.MajorVersion <= 10 Then
-		        addStringObject_(arr, value(i).UTI)
-		      Else
-		        Dim t As ptr = exportedTypeWithIdentifier_(UTType, value(i).UTI)
-		        If t = Nil Then
-		          t = importedTypeWithIdentifier_(UTType, value(i).UTI)
-		        End If
-		        addObject_(arr, t)
+		      Dim t As ptr = exportedTypeWithIdentifier_(UTType, value(i).UTI)
+		      If t = Nil Then
+		        t = importedTypeWithIdentifier_(UTType, value(i).UTI)
 		      End If
+		      addObject_(arr, t)
 		    Next i
 		    
-		    If MacOSVersion.MajorVersion <= 10 Then
-		      setAllowedFileTypes(mPtr, arr)
-		    Else
-		      setAllowedContentTypes(mPtr, arr)
-		    End If
+		    setAllowedContentTypes(mPtr, arr)
 		  #endif
 		End Sub
 	#tag EndMethod
