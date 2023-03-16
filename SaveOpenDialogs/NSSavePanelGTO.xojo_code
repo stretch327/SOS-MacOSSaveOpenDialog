@@ -297,6 +297,22 @@ Protected Class NSSavePanelGTO
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub ShowModal()
+		  #If TargetMacOS
+		    SetupDelegate
+		    
+		    Declare Function runModal Lib "Foundation" Selector "runModal" ( obj As ptr ) As Integer
+		    
+		    Var iResponse As Integer = runModal( mptr )
+		    
+		    Response( iResponse )
+		    
+		  #EndIf
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub ShowWithin(parent as DesktopWindow)
 		  #If TargetMacOS
 		    SetupDelegate
