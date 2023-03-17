@@ -137,24 +137,40 @@ Protected Class NSSavePanelGTO
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Attributes( Deprecated = "Filter(FileTypes)" )  Sub Filter(assigns value() as String)
+		Sub Filter(assigns extensions() as String)
 		  #If TargetMacOS
 		    Declare Function NSClassFromString Lib "Foundation" (name As cfstringref) As ptr
 		    // + (instancetype)arrayWithCapacity:(NSUInteger)numItems;
 		    Declare Function arrayWithCapacity_ Lib "Foundation" Selector "arrayWithCapacity:" ( cls As ptr , numItems As Integer ) As Ptr
 		    
+		    // - (void)addObject:(ObjectType)anObject;
+		    Declare Sub addObject_ Lib "Foundation" Selector "addObject:" ( obj As ptr , anObject As Ptr )
 		    Declare Sub addStringObject_ Lib "Foundation" Selector "addObject:" ( obj As ptr , anObject As CFStringRef )
 		    
 		    // @property(copy) NSArray<NSString *> *allowedFileTypes;
 		    Declare Sub setAllowedFileTypes Lib "Foundation" Selector "setAllowedFileTypes:" (obj As ptr, value As Ptr)
+		    Declare Sub setAllowedContentTypes Lib "Foundation" Selector "setAllowedContentTypes:" (obj As ptr, value As Ptr)
+		    // + (instancetype)typeWithFilenameExtension:(NSString *)filenameExtension;
+		    Declare Function typeWithFilenameExtension Lib "Foundation" Selector "typeWithFilenameExtension:" ( cls As ptr , filenameExtension As CFStringRef ) As Ptr
 		    
 		    Dim arr As ptr = arrayWithCapacity_(NSClassFromString("NSMutableArray"), 0)
 		    
-		    For i As Integer = 0 To UBound(value)
-		      addStringObject_(arr, value(i))
+		    Dim useDeprecatedMethods As Boolean = System.Version.MajorVersion = 10 And System.Version.MinorVersion < 16
+		    For i As Integer = 0 To UBound(extensions)
+		      Dim ext As String = Extensions(i).Trim.TrimLeft(".")
+		      If useDeprecatedMethods Then
+		        addStringObject_(arr, ext)
+		      Else
+		        Dim type As ptr = typeWithFilenameExtension(NSClassFromString("UTType"), ext)
+		        addObject_(arr, type)
+		      End If
 		    Next i
 		    
-		    setAllowedFileTypes(mPtr, arr)
+		    If useDeprecatedMethods Then
+		      setAllowedFileTypes(mPtr, arr)
+		    Else
+		      setAllowedContentTypes(mPtr, arr)
+		    End If
 		  #EndIf
 		End Sub
 	#tag EndMethod
