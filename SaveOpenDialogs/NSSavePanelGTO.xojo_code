@@ -91,6 +91,7 @@ Protected Class NSSavePanelGTO
 		Sub Filter(assigns value() as FileType)
 		  #If TargetMacOS
 		    Declare Sub setAllowedContentTypes Lib "Foundation" Selector "setAllowedContentTypes:" (obj As ptr, value As Ptr)
+		    Declare Sub setAllowedFileTypes Lib "Foundation" Selector "setAllowedFileTypes:" (obj As ptr, value As Ptr)
 		    
 		    Declare Function NSClassFromString Lib "Foundation" (name As cfstringref) As ptr
 		    // + (instancetype)arrayWithCapacity:(NSUInteger)numItems;
@@ -106,15 +107,31 @@ Protected Class NSSavePanelGTO
 		    
 		    Dim arr As ptr = arrayWithCapacity_(NSClassFromString("NSMutableArray"), 0)
 		    Dim UTType As ptr = NSClassFromString("UTType")
+		    
+		    Dim useDeprecatedMethods As Boolean = System.Version.MajorVersion = 10 And System.Version.MinorVersion < 16
 		    For i As Integer = 0 To UBound(value)
-		      Dim t As ptr = exportedTypeWithIdentifier_(UTType, value(i).UTI)
-		      If t = Nil Then
-		        t = importedTypeWithIdentifier_(UTType, value(i).UTI)
+		      If useDeprecatedMethods Then
+		        Dim ext As String = value(i).Extensions
+		        Dim exts() As String = ext.ToArray(";")
+		        For j As Integer = 0 To UBound(exts)
+		          Dim e As String = exts(j).TrimLeft(".").Trim
+		          If e="*" Then e = ""
+		          addStringObject_(arr, e)
+		        Next
+		      Else
+		        Dim t As ptr = exportedTypeWithIdentifier_(UTType, value(i).UTI)
+		        If t = Nil Then
+		          t = importedTypeWithIdentifier_(UTType, value(i).UTI)
+		        End If
+		        addObject_(arr, t)
 		      End If
-		      addObject_(arr, t)
 		    Next i
 		    
-		    setAllowedContentTypes(mPtr, arr)
+		    If useDeprecatedMethods Then
+		      setAllowedFileTypes(mPtr, arr)
+		    Else
+		      setAllowedContentTypes(mPtr, arr)
+		    End If
 		  #endif
 		End Sub
 	#tag EndMethod
