@@ -88,7 +88,7 @@ Protected Class NSSavePanelGTO
 	#tag EndDelegateDeclaration
 
 	#tag Method, Flags = &h0
-		Sub Filter(assigns value() as FileType)
+		Sub Filter(assigns types() as FileType)
 		  #If TargetMacOS
 		    Declare Sub setAllowedContentTypes Lib "Foundation" Selector "setAllowedContentTypes:" (obj As ptr, value As Ptr)
 		    Declare Sub setAllowedFileTypes Lib "Foundation" Selector "setAllowedFileTypes:" (obj As ptr, value As Ptr)
@@ -109,19 +109,19 @@ Protected Class NSSavePanelGTO
 		    Dim UTType As ptr = NSClassFromString("UTType")
 		    
 		    Dim useDeprecatedMethods As Boolean = System.Version.MajorVersion = 10 And System.Version.MinorVersion < 16
-		    For i As Integer = 0 To UBound(value)
+		    For i As Integer = 0 To UBound(types)
 		      If useDeprecatedMethods Then
-		        Dim ext As String = value(i).Extensions
+		        Dim ext As String = types(i).Extensions
 		        Dim exts() As String = ext.ToArray(";")
 		        For j As Integer = 0 To UBound(exts)
-		          Dim e As String = exts(j).TrimLeft(".").Trim
+		          Dim e As String = exts(j).Trim.TrimLeft(".")
 		          If e="*" Then e = ""
 		          addStringObject_(arr, e)
 		        Next
 		      Else
-		        Dim t As ptr = exportedTypeWithIdentifier_(UTType, value(i).UTI)
+		        Dim t As ptr = exportedTypeWithIdentifier_(UTType, types(i).UTI)
 		        If t = Nil Then
-		          t = importedTypeWithIdentifier_(UTType, value(i).UTI)
+		          t = importedTypeWithIdentifier_(UTType, types(i).UTI)
 		        End If
 		        addObject_(arr, t)
 		      End If
