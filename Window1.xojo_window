@@ -271,9 +271,11 @@ End
 		  // the rest of these only need to be defined if you want to be notified and/or 
 		  // make changes.
 		  
+		  // You should only use this one if you need to enable items on an item by item basis
+		  obj.Callback_ShouldEnableItem = AddressOf NSSavePanel_ShouldEnableItem
+		  
 		  obj.Callback_DirectoryChanged = AddressOf NSSavePanel_DirectoryChanged
 		  obj.Callback_SelectionChanged = AddressOf NSSavePanel_SelectionChanged
-		  obj.Callback_ShouldEnableItem = AddressOf NSSavePanel_ShouldEnableItem
 		  obj.Callback_UserEnteredFilename = AddressOf NSSavePanel_UserEnteredFilename
 		  obj.Callback_ValidateItem = AddressOf NSSavePanel_ValidateItem
 		  obj.Callback_WillExpand = AddressOf NSSavePanel_WillExpand
