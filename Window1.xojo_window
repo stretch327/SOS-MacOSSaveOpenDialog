@@ -259,6 +259,37 @@ Begin DesktopWindow Window1
       Visible         =   True
       Width           =   980
    End
+   Begin DesktopButton Button5
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Cancel          =   False
+      Caption         =   "Use Extensions"
+      Default         =   False
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   20
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   412
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      MacButtonStyle  =   0
+      Scope           =   2
+      TabIndex        =   7
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Tooltip         =   ""
+      Top             =   20
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      Width           =   120
+   End
 End
 #tag EndDesktopWindow
 
@@ -573,6 +604,33 @@ End
 		  // set the filter on the dialog to the selected type
 		  // this will automagically change the extension of the file
 		  mDialog.Filter = Array(type)
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events Button5
+	#tag Event
+		Sub Pressed()
+		  
+		  // Custom open panel
+		  mDialog = New NSOpenPanelGTO
+		  Dim dlg As NSOpenPanelGTO = NSOpenPanelGTO(mDialog) // so we don't have to do a bunch of casting
+		  
+		  AddDelegates(dlg)
+		  
+		  config(dlg)
+		  dlg.PromptText = "Select some files and/or folders"
+		  dlg.ActionButtonCaption = "Select"
+		  SaveAccessories1.Reset
+		  dlg.AccessoryView = SaveAccessories1
+		  dlg.CanChooseDirectories = True
+		  dlg.CanChooseFiles = True
+		  dlg.AllowMultipleSelection = True
+		  dlg.TreatsPackagesAsFolders = False
+		  dlg.ResolvesAliases = True
+		  dlg.Filter = Array("txt", "app")
+		  dlg.ShowWithin(Self)
+		  
+		  
 		End Sub
 	#tag EndEvent
 #tag EndEvents
