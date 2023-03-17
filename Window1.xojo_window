@@ -560,7 +560,7 @@ End
 		  dlg.AllowMultipleSelection = True
 		  dlg.TreatsPackagesAsFolders = False
 		  dlg.ResolvesAliases = True
-		  dlg.Filter = Array(FileTypeGroup2.Any, FileTypeGroup2.ApplicationBundle)
+		  dlg.Filter = Array(FileTypeGroup2.ApplicationBundle, FileTypeGroup2.Text, FileTypeGroup2.Pdf, FileTypeGroup2.Rtf)
 		  dlg.ShowWithin(Self)
 		  
 		  
