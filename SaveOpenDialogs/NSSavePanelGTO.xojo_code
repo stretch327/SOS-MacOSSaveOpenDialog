@@ -213,7 +213,7 @@ Protected Class NSSavePanelGTO
 	#tag Method, Flags = &h21
 		Private Sub Response(value as integer)
 		  #If TargetMacOS
-		    If mDelegateCache.HasKey(mPtr) Then
+		    If mDelegateCache<>nil and mDelegateCache.HasKey(mPtr) Then
 		      mDelegateCache.Remove(mPtr)
 		    End If
 		    
@@ -247,6 +247,11 @@ Protected Class NSSavePanelGTO
 
 	#tag Method, Flags = &h21
 		Private Sub SetupDelegate()
+		  // Initialize the delegate cache
+		  If mDelegateCache = Nil Then
+		    mDelegateCache = New Dictionary
+		  End If
+		  
 		  // check to make sure the user has defined the delegate for getting
 		  If Callback_ItemsSelected = Nil Then
 		    Raise New UnsupportedOperationException("You must assign a method to the ItemsSelected callback delegate")
@@ -289,10 +294,6 @@ Protected Class NSSavePanelGTO
 		  
 		  Declare Sub setDelegate Lib "Foundation" Selector "setDelegate:" (obj As ptr, value As Ptr)
 		  setDelegate(mPtr, mDelegateObj.Handle)
-		  
-		  If mDelegateCache = Nil Then
-		    mDelegateCache = New Dictionary
-		  End If
 		  
 		  mDelegateCache.Value(mPtr) = Self
 		End Sub
